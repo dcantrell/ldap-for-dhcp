@@ -1,6 +1,6 @@
 VER   = 4.1.0
 
-FILES = LICENSE dhcp-$(VERSION)-ldap.patch dhcpd-conf-to-ldap \
+FILES = LICENSE dhcp-$(VER)-ldap.patch dhcpd-conf-to-ldap \
         README.ldap dhcp.schema draft-ietf-dhc-ldap-schema-01.txt
 
 all: $(FILES)
@@ -14,4 +14,5 @@ LICENSE: LICENSE.in
 
 clean:
 	-rm -rf ldap-for-dhcp-$(VER).tar.gz
+	-rm -rf ldap-for-dhcp-$(VER)
 	-rm -rf LICENSE
