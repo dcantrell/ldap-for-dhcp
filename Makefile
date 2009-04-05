@@ -34,6 +34,9 @@ release: tag
 	@echo "    git push --tags"
 	@echo
 
+push:
+	git push --mirror fedorapeople
+
 clean:
 	-rm -rf ldap-for-dhcp-$(VER).tar.gz
 	-rm -rf ldap-for-dhcp-$(VER)
