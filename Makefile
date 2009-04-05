@@ -14,7 +14,7 @@ all: $(FILES)
 LICENSE: LICENSE.in
 	sed -e "s|%VERSION%|$(VER)|g" < $< > $@
 
-tag: dist-gzip
+tag: all
 	@if [ -z "$(GPGKEY)" ]; then \
 		echo "GPGKEY environment variable missing, please set this to the key ID" ; \
 		echo "you want to use to tag the repository." ; \
