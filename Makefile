@@ -24,9 +24,6 @@ tag: all
 	@echo "Tagged as $(PKG)-$(VER)-$(REL) (GPG signed)"
 
 release: tag
-	rm -rf $(PKG)-$(VER)
-	gzip -dc $(PKG)-$(VER).tar.gz | tar -xvf -
-	( cd $(PKG)-$(VER) && ./configure && make ) || exit 1
 	@echo
 	@echo "$(PKG)-$(VER).tar.gz is now ready to upload."
 	@echo "Do not forget to push changes to the repository with:"
