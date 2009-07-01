@@ -32,7 +32,7 @@ release: tag
 	@echo
 
 push:
-	git push --mirror fedorapeople
+	git push fedorapeople master
 	git fetch
 	git rebase origin
 
