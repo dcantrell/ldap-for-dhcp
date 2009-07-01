@@ -1,7 +1,7 @@
 LDAP Support in DHCP
 Original Author: Brian Masney <masneyb@gftp.org>
 Current Maintainer: David Cantrell <dcantrell@redhat.com>
-Last updated 23-Feb-2009
+Last updated 30-Jun-2009
 
 This document describes setting up the DHCP server to read it's configuration
 from LDAP.  This work is based on the IETF document
@@ -27,11 +27,11 @@ index           dhcpClassData eq
 
 The first line tells it to include the dhcp schema file.  You will find this
 file under the contrib directory in this distribution.  You will need to copy
-this file to where your other schema files are (maybe
-/usr/local/openldap/etc/openldap/schema/).  The second line sets up an index
-for the dhcpHWAddress parameter.  The third parameter is for reading subclasses
-from LDAP every time a DHCP request comes in. Make sure you run the slapindex
-command and restart slapd to have these changes to into effect.
+this file to where your other schema files are (maybe /etc/openldap/schema/).
+The second line sets up an index for the dhcpHWAddress parameter.  The third
+parameter is for reading subclasses from LDAP every time a DHCP request comes
+in.  Make sure you run the slapindex command and restart slapd to have these
+changes to into effect.
 
 Now that you have LDAP setup, you should be able to use gq
 (http://biot.com/gq/) to verify that the dhcp schema file is loaded into LDAP.
@@ -41,21 +41,19 @@ dhcpHost, dhcpOptions, dhcpPool, dhcpServer, dhcpService, dhcpSharedNetwork,
 dhcpSubClass, and dhcpSubnet.  If you do not see these, you need to check over
 your LDAP configuration before you go any further.
 
-You should now be ready to build DHCP.  If you would like to enable LDAP over
-SSL, you will need to perform the following steps:
+You should now be ready to build DHCP.  If you would like to enable LDAP in
+dhcpd, you will need to perform the following steps:
 
-  * Edit the includes/site.h file and uncomment the USE_SSL line
-    or specify "-DUSE_SSL" via CFLAGS.
-  * Edit the dst/Makefile.dist file and remove md5_dgst.c and md5_dgst.o
-    from the SRC= and OBJ= lines (around line 24)
-  * Now run configure in the base source directory. If you chose to enable
-    LDAP over SSL, you must append -lcrypto -lssl to the LIBS= line in the
-    file work.os/server/Makefile (replace os with your operating system,
-    linux-2.2 on my machine).  You should now be able to type make to build
-    your DHCP server.
-
-If you choose to not enable LDAP over SSL, then you only need to run configure
-and make in the toplevel source directory.
+  * Apply the patch here to the unpacked ISC dhcp source tree.
+  * Regenerate the configure script (requires GNU autoconf and automake):
+        aclocal
+        libtoolize --copy --force
+        autoconf
+        autoheader
+        automake --foreign --add-missing --copy
+  * Run ./configure with the '--with-ldap' argument to enable OpenLDAP.
+    If you want LDAP over SSL, also use the '--with-ldapcrypto' argument.
+  * Run 'make' to build ISC dhcp.
 
 Once you have DHCP installed, you will need to setup your initial plaintext
 config file. In my /etc/dhcpd.conf file, I have:
@@ -68,10 +66,10 @@ ldap-base-dn "dc=ntelos, dc=net";
 ldap-method dynamic;
 ldap-debug-file "/var/log/dhcp-ldap-startup.log";
 
-If SSL has been enabled at compile time using the USE_SSL flag, the dhcp
-server trys to use TLS if possible, but continues without TLS if not.
+If SSL has been enabled at compile time, the dhcp server trys to use TLS if
+possible, but continues without TLS if not.
 
-You can modify this behaviour using following option in /etc/dhcpd.conf:
+You can modify this behaviour using following option in /etc/dhcp/dhcpd.conf:
 
 ldap-ssl <off | ldaps | start_tls | on>
    off:       disables TLS/LDAPS.
@@ -185,10 +183,9 @@ objectClass: dhcpHost
 cn: brianlaptop
 dhcpHWAddress: ethernet 00:00:00:00:00:00
 
-You can use the command slapadd to load all of these entries into your LDAP 
+You can use the command slapadd to load all of these entries into your LDAP
 server. After you load this, you should be able to start up DHCP. If you run
-into problems reading the configuration, try running dhcpd with the -d flag. 
+into problems reading the configuration, try running dhcpd with the -d flag.
 If you still have problems, edit the site.conf file in the DHCP source and
-add the line: COPTS= -DDEBUG_LDAP and recompile DHCP. (make sure you run make 
+add the line: COPTS= -DDEBUG_LDAP and recompile DHCP. (make sure you run make
 clean and rerun configure before you rebuild).
-
