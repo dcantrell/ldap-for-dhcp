@@ -1,6 +1,6 @@
 PKG   = ldap-for-dhcp
-VER   = 4.1.0
-REL   = 3
+VER   = 4.0.1
+REL   = 1
 
 FILES = LICENSE dhcp-$(VER)-ldap.patch dhcpd-conf-to-ldap \
         README.ldap dhcp.schema draft-ietf-dhc-ldap-schema-01.txt
@@ -27,11 +27,9 @@ release: tag
 	@echo
 	@echo "$(PKG)-$(VER)-$(REL).tar.gz is now ready to upload."
 	@echo "Do not forget to push changes to the repository with:"
-	@echo "    make push"
+	@echo "    git push"
+	@echo "    git push --tags"
 	@echo
-
-push:
-	git push --mirror fedorapeople
 
 clean:
 	-rm -rf $(PKG)-$(VER)-$(REL).tar.gz
