@@ -31,9 +31,7 @@ release: tag
 	@echo
 
 push:
-	git push fedorapeople --tags master
-	git fetch
-	git rebase origin
+	git push --mirror fedorapeople
 
 clean:
 	-rm -rf $(PKG)-$(VER)-$(REL).tar.gz
