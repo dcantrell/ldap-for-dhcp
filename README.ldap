@@ -1,7 +1,7 @@
 LDAP Support in DHCP
 Original Author: Brian Masney <masneyb@gftp.org>
 Current Maintainer: David Cantrell <dcantrell@redhat.com>
-Last updated 30-Jun-2009
+Last updated 06-Jul-2009
 
 This document describes setting up the DHCP server to read it's configuration
 from LDAP.  This work is based on the IETF document
@@ -56,7 +56,7 @@ dhcpd, you will need to perform the following steps:
   * Run 'make' to build ISC dhcp.
 
 Once you have DHCP installed, you will need to setup your initial plaintext
-config file. In my /etc/dhcpd.conf file, I have:
+config file. In my /etc/dhcp/dhcpd.conf file, I have:
 
 ldap-server "localhost";
 ldap-port 389;
