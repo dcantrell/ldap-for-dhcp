@@ -27,11 +27,9 @@ release: tag
 	@echo
 	@echo "$(PKG)-$(VER)-$(REL).tar.gz is now ready to upload."
 	@echo "Do not forget to push changes to the repository with:"
-	@echo "    make push"
+	@echo "    git push"
+	@echo "    git push --tags"
 	@echo
-
-push:
-	git push --mirror fedorapeople
 
 clean:
 	-rm -rf $(PKG)-$(VER)-$(REL).tar.gz
