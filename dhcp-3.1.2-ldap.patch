@@ -1,43 +1,60 @@
-diff -up dhcp-4.1.0/common/conflex.c.ldap dhcp-4.1.0/common/conflex.c
---- dhcp-4.1.0/common/conflex.c.ldap	2008-03-07 10:12:44.000000000 -1000
-+++ dhcp-4.1.0/common/conflex.c	2009-06-29 21:34:28.000000000 -1000
-@@ -43,6 +43,7 @@ static enum dhcp_token read_string PROTO
+Submitted By: Mario Fetka (mario dot fetka at gmail dot com)
+Date: 2009-07-07
+Initial Package Version: 3.1.2
+Origin: http://cvs.fedoraproject.org/viewvc/devel/dhcp/dhcp-3.1.0-ldap-configuration.patch?view=log&hideattic=0&pathrev=dhcp-3_1_0-10_fc9
+Upstream Status: unknown
+Description: dhcp ldap patch
+ 
+diff -Naur dhcp-3.1.2.orig/common/conflex.c dhcp-3.1.2/common/conflex.c
+--- dhcp-3.1.2.orig/common/conflex.c	2009-07-07 18:51:05.480223698 +0000
++++ dhcp-3.1.2/common/conflex.c	2009-07-07 18:48:02.088508056 +0000
+@@ -47,6 +47,7 @@
  static enum dhcp_token read_number PROTO ((int, struct parse *));
  static enum dhcp_token read_num_or_name PROTO ((int, struct parse *));
- static enum dhcp_token intern PROTO ((char *, enum dhcp_token));
+ static enum dhcp_token intern PROTO ((unsigned char *, enum dhcp_token));
 +static int read_function PROTO ((struct parse *));
  
  isc_result_t new_parse (cfile, file, inbuf, buflen, name, eolp)
  	struct parse **cfile;
-@@ -73,6 +74,10 @@ isc_result_t new_parse (cfile, file, inb
- 	tmp->file = file;
- 	tmp->eol_token = eolp;
+@@ -74,6 +75,10 @@
+ 	tmp -> file = file;
+ 	tmp -> eol_token = eolp;
  
 +	if (file != -1) {
-+		tmp -> read_function = read_function;
++		tmp -> read_function = read_function;;
 +	}
 +
- 	if (inbuf != NULL) {
- 		tmp->inbuf = inbuf;
- 		tmp->buflen = buflen;
-@@ -177,9 +182,13 @@ static int get_char (cfile)
- 	/* My kingdom for WITH... */
+ 	tmp -> bufix = 0;
+ 	tmp -> buflen = buflen;
+ 	if (inbuf) {
+@@ -113,22 +118,11 @@
  	int c;
  
--	if (cfile->bufix == cfile->buflen)
--		c = EOF;
--	else {
-+	if (cfile->bufix == cfile->buflen) {
+ 	if (cfile -> bufix == cfile -> buflen) {
+-		if (cfile -> file != -1) {
+-			cfile -> buflen =
+-				read (cfile -> file,
+-				      cfile -> inbuf, cfile -> bufsiz);
+-			if (cfile -> buflen == 0) {
+-				c = EOF;
+-				cfile -> bufix = 0;
+-			} else if (cfile -> buflen < 0) {
+-				c = EOF;
+-				cfile -> bufix = cfile -> buflen = 0;
+-			} else {
+-				c = cfile -> inbuf [0];
+-				cfile -> bufix = 1;
+-			}
+-		} else
 +		if (cfile -> read_function) {
 +			c = cfile -> read_function (cfile);
 +		} else {
-+			c = EOF;
+ 			c = EOF;
 +		}
-+	} else {
- 		c = cfile->inbuf [cfile->bufix];
- 		cfile->bufix++;
- 	}
-@@ -1443,3 +1452,25 @@ intern(char *atom, enum dhcp_token dfv) 
+ 	} else {
+ 		c = cfile -> inbuf [cfile -> bufix];
+ 		cfile -> bufix++;
+@@ -1213,3 +1207,23 @@
  	}
  	return dfv;
  }
@@ -47,26 +64,24 @@ diff -up dhcp-4.1.0/common/conflex.c.ldap dhcp-4.1.0/common/conflex.c
 +{
 +	int c;
 +
-+	ssize_t n = read (cfile -> file, cfile -> inbuf, cfile -> bufsiz);
-+	if (n == 0) {
++	cfile -> buflen = read (cfile -> file, cfile -> inbuf, cfile -> bufsiz);
++	if (cfile -> buflen == 0) {
 +		c = EOF;
 +		cfile -> bufix = 0;
-+		cfile -> buflen = 0;
-+	} else if (n < 0) {
++	} else if (cfile -> buflen < 0) {
 +		c = EOF;
 +		cfile -> bufix = cfile -> buflen = 0;
 +	} else {
 +		c = cfile -> inbuf [0];
 +		cfile -> bufix = 1;
-+		cfile -> buflen = n;
 +	}
 +
 +	return c;
 +}
-diff -up dhcp-4.1.0/common/print.c.ldap dhcp-4.1.0/common/print.c
---- dhcp-4.1.0/common/print.c.ldap	2007-10-01 04:47:35.000000000 -1000
-+++ dhcp-4.1.0/common/print.c	2009-06-29 21:34:28.000000000 -1000
-@@ -163,9 +163,9 @@ char *print_base64 (const unsigned char 
+diff -Naur dhcp-3.1.2.orig/common/print.c dhcp-3.1.2/common/print.c
+--- dhcp-3.1.2.orig/common/print.c	2009-07-07 18:51:05.475594605 +0000
++++ dhcp-3.1.2/common/print.c	2009-07-07 18:48:02.063043646 +0000
+@@ -168,9 +168,9 @@
  }
  
  char *print_hw_addr (htype, hlen, data)
@@ -79,63 +94,46 @@ diff -up dhcp-4.1.0/common/print.c.ldap dhcp-4.1.0/common/print.c
  {
  	static char habuf [49];
  	char *s;
-diff -up dhcp-4.1.0/configure.ac.ldap dhcp-4.1.0/configure.ac
---- dhcp-4.1.0/configure.ac.ldap	2008-12-05 10:14:12.000000000 -1000
-+++ dhcp-4.1.0/configure.ac	2009-06-30 17:59:27.000000000 -1000
-@@ -452,6 +452,33 @@ AC_CHECK_MEMBER(struct msghdr.msg_contro
- #include <sys/socket.h>
- 	])
+diff -Naur dhcp-3.1.2.orig/dst/Makefile.dist dhcp-3.1.2/dst/Makefile.dist
+--- dhcp-3.1.2.orig/dst/Makefile.dist	2009-07-07 18:51:05.475594605 +0000
++++ dhcp-3.1.2/dst/Makefile.dist	2009-07-07 18:48:02.023691467 +0000
+@@ -23,12 +23,13 @@
  
-+# OpenLDAP support in dhcpd is disabled by default
-+AC_ARG_WITH(ldap,
-+    AC_HELP_STRING([--with-ldap],
-+                   [enable OpenLDAP support in dhcpd (default is no)]),
-+    [ldap=$withval],
-+    [ldap=no])
-+if test x$ldap = xyes ; then
-+    AC_CHECK_LIB([ldap], [ldap_initialize], [],
-+        [AC_MSG_FAILURE([*** libldap not usable.])])
-+
-+    ldap_libs="-lldap"
-+    AC_SUBST(LDAP_CFLAGS, [-DLDAP_CONFIGURATION])
-+    AC_SUBST(LDAP_LIBS, [$ldap_libs])
-+fi
-+
-+# OpenLDAP with SSL support is optional
-+AC_ARG_WITH(ldapcrypto,
-+    AC_HELP_STRING([--with-ldapcrypto],
-+                   [enable OpenLDAP crypto support in dhcpd (default is no)]),
-+    [ldapcrypto=$withval],
-+    [ldapcrypto=no])
-+if test x$ldapcrypto = xyes ; then
-+    AC_SUBST(LDAPSSL_CFLAGS, [-DUSE_SSL])
-+fi
-+
-+AM_CONDITIONAL(USE_LDAP, [test x$ldap == xyes])
-+
- # Append selected warning levels to CFLAGS before substitution (but after
- # AC_TRY_COMPILE & etc).
- CFLAGS="$CFLAGS $STD_CWARNINGS"
-diff -up dhcp-4.1.0/dst/Makefile.am.ldap dhcp-4.1.0/dst/Makefile.am
---- dhcp-4.1.0/dst/Makefile.am.ldap	2007-05-29 06:32:10.000000000 -1000
-+++ dhcp-4.1.0/dst/Makefile.am	2009-06-29 21:52:19.000000000 -1000
-@@ -2,7 +2,11 @@ AM_CPPFLAGS = -DMINIRES_LIB -DHMAC_MD5
+ SRC    = dst_support.c dst_api.c hmac_link.c md5_dgst.c base64.c prandom.c
+ OBJ    = dst_support.o dst_api.o hmac_link.o md5_dgst.o base64.o prandom.o
++OBJ_NM5= dst_support.o dst_api.o hmac_link.o base64.o prandom.o
+ HDRS   = dst_internal.h md5.h md5_locl.h
  
- lib_LIBRARIES = libdst.a
+ INCLUDES = $(BINDINC) -I$(TOP)/includes
+ CFLAGS = $(DEBUG) $(PREDEFINES) $(INCLUDES) $(COPTS) -DHMAC_MD5 -DMINIRES_LIB
  
--libdst_a_SOURCES = dst_support.c dst_api.c hmac_link.c md5_dgst.c \
-+libdst_a_SOURCES = dst_support.c dst_api.c hmac_link.c \
- 		   base64.c prandom.c
+-all:	libdst.a
++all:	libdst.a libdst-nomd5.a
  
-+if USE_LDAP
-+libdst_a_SOURCES += md5_dgst.c
-+endif
+ install:
+ 
+@@ -37,11 +38,16 @@
+ 	ar cruv libdst.a $(OBJ)
+ 	$(RANLIB) libdst.a
+ 
++libdst-nomd5.a:	$(OBJ_NM5)
++	rm -f libdst-nomd5.a
++	ar cruv libdst-nomd5.a $(OBJ_NM5)
++	$(RANLIB) libdst-nomd5.a
 +
- EXTRA_DIST = dst_internal.h md5.h md5_locl.h
-diff -up dhcp-4.1.0/includes/dhcpd.h.ldap dhcp-4.1.0/includes/dhcpd.h
---- dhcp-4.1.0/includes/dhcpd.h.ldap	2008-08-29 07:48:57.000000000 -1000
-+++ dhcp-4.1.0/includes/dhcpd.h	2009-06-29 21:34:28.000000000 -1000
-@@ -102,6 +102,11 @@ typedef time_t TIME;
+ depend:
+ 	$(MKDEP) $(INCLUDES) $(PREDEFINES) $(SRC)
+ 
+ clean:
+-	-rm -f $(OBJ) libdst.a
++	-rm -f $(OBJ) libdst.a libdst-nomd5.a
+ 
+ realclean: clean
+ 	-rm -f *~ $(CATMANPAGES) $(SEDMANPAGES)
+diff -Naur dhcp-3.1.2.orig/includes/dhcpd.h dhcp-3.1.2/includes/dhcpd.h
+--- dhcp-3.1.2.orig/includes/dhcpd.h	2009-07-07 18:51:05.480223698 +0000
++++ dhcp-3.1.2/includes/dhcpd.h	2009-07-07 18:48:02.123232120 +0000
+@@ -81,6 +81,11 @@
  #include <isc-dhcp/result.h>
  #include <omapip/omapip_p.h>
  
@@ -145,18 +143,18 @@ diff -up dhcp-4.1.0/includes/dhcpd.h.ldap dhcp-4.1.0/includes/dhcpd.h
 +#endif
 +
  #if !defined (BYTE_NAME_HASH_SIZE)
- # define BYTE_NAME_HASH_SIZE	401	/* Default would be ridiculous. */
+ # define BYTE_NAME_HASH_SIZE	401	/* Default would be rediculous. */
  #endif
-@@ -291,6 +296,8 @@ struct parse {
- 	size_t bufsiz;
- 
- 	struct parse *saved_state;
+@@ -251,6 +256,8 @@
+ 	char *inbuf;
+ 	unsigned bufix, buflen;
+ 	unsigned bufsiz;
 +
 +	int (*read_function) (struct parse *);
  };
  
  /* Variable-length array of data. */
-@@ -422,6 +429,32 @@ struct hardware {
+@@ -362,6 +369,32 @@
  	u_int8_t hbuf [17];
  };
  
@@ -189,37 +187,37 @@ diff -up dhcp-4.1.0/includes/dhcpd.h.ldap dhcp-4.1.0/includes/dhcpd.h
  typedef enum {
  	server_startup = 0,
  	server_running = 1,
-@@ -642,6 +675,29 @@ struct lease_state {
- # define DEFAULT_ACK_DELAY_USECS 250000 /* 1/4 of a second */
+@@ -558,6 +591,29 @@
+ # define DEFAULT_PING_TIMEOUT 1
  #endif
  
 +#if defined(LDAP_CONFIGURATION)
-+# define SV_LDAP_SERVER			60
-+# define SV_LDAP_PORT			61
-+# define SV_LDAP_USERNAME		62
-+# define SV_LDAP_PASSWORD		63
-+# define SV_LDAP_BASE_DN		64
-+# define SV_LDAP_METHOD			65
-+# define SV_LDAP_DEBUG_FILE		66
-+# define SV_LDAP_DHCP_SERVER_CN		67
-+# define SV_LDAP_REFERRALS		68
++# define SV_LDAP_SERVER		47
++# define SV_LDAP_PORT		48
++# define SV_LDAP_USERNAME	49
++# define SV_LDAP_PASSWORD	50
++# define SV_LDAP_BASE_DN	51
++# define SV_LDAP_METHOD		52
++# define SV_LDAP_DEBUG_FILE		53
++# define SV_LDAP_DHCP_SERVER_CN		54
++# define SV_LDAP_REFERRALS		55
 +#if defined (USE_SSL)
-+# define SV_LDAP_SSL			69
-+# define SV_LDAP_TLS_REQCERT		70
-+# define SV_LDAP_TLS_CA_FILE		71
-+# define SV_LDAP_TLS_CA_DIR		72
-+# define SV_LDAP_TLS_CERT		73
-+# define SV_LDAP_TLS_KEY		74
-+# define SV_LDAP_TLS_CRLCHECK		75
-+# define SV_LDAP_TLS_CIPHERS		76
-+# define SV_LDAP_TLS_RANDFILE		77
++# define SV_LDAP_SSL		56
++# define SV_LDAP_TLS_REQCERT		57
++# define SV_LDAP_TLS_CA_FILE		58
++# define SV_LDAP_TLS_CA_DIR		59
++# define SV_LDAP_TLS_CERT		60
++# define SV_LDAP_TLS_KEY		61
++# define SV_LDAP_TLS_CRLCHECK		62
++# define SV_LDAP_TLS_CIPHERS		63
++# define SV_LDAP_TLS_RANDFILE		64
 +#endif
 +#endif
 +
  #if !defined (DEFAULT_DEFAULT_LEASE_TIME)
  # define DEFAULT_DEFAULT_LEASE_TIME 43200
  #endif
-@@ -2107,7 +2163,7 @@ extern int db_time_format;
+@@ -1707,7 +1763,7 @@
  char *quotify_string (const char *, const char *, int);
  char *quotify_buf (const unsigned char *, unsigned, const char *, int);
  char *print_base64 (const unsigned char *, unsigned, const char *, int);
@@ -228,10 +226,11 @@ diff -up dhcp-4.1.0/includes/dhcpd.h.ldap dhcp-4.1.0/includes/dhcpd.h
  void print_lease PROTO ((struct lease *));
  void dump_raw PROTO ((const unsigned char *, unsigned));
  void dump_packet_option (struct option_cache *, struct packet *,
-@@ -3228,6 +3284,20 @@ OMAPI_OBJECT_ALLOC_DECL (dhcp_failover_l
+@@ -2817,3 +2873,18 @@
+ #endif /* FAILOVER_PROTOCOL */
  
  const char *binding_state_print (enum failover_state);
- 
++
 +/* ldap.c */
 +#if defined(LDAP_CONFIGURATION)
 +extern struct enumeration ldap_methods;
@@ -246,12 +245,9 @@ diff -up dhcp-4.1.0/includes/dhcpd.h.ldap dhcp-4.1.0/includes/dhcpd.h
 +int find_subclass_in_ldap (struct class *, struct class **,
 +                           struct data_string *);
 +#endif
- 
- /* mdb6.c */
- HASH_FUNCTIONS_DECL(ia, unsigned char *, struct ia_xx, ia_hash_t);
-diff -up /dev/null dhcp-4.1.0/includes/ldap_casa.h
---- /dev/null	2009-06-30 13:32:15.891073262 -1000
-+++ dhcp-4.1.0/includes/ldap_casa.h	2009-06-29 21:34:28.000000000 -1000
+diff -Naur dhcp-3.1.2.orig/includes/ldap_casa.h dhcp-3.1.2/includes/ldap_casa.h
+--- dhcp-3.1.2.orig/includes/ldap_casa.h	1970-01-01 00:00:00.000000000 +0000
++++ dhcp-3.1.2/includes/ldap_casa.h	2009-07-07 18:48:02.141747024 +0000
 @@ -0,0 +1,83 @@
 +/* ldap_casa.h
 +   
@@ -336,30 +332,61 @@ diff -up /dev/null dhcp-4.1.0/includes/ldap_casa.h
 +#endif /* __LDAP_CASA_H__ */
 +#endif /* LDAP_CASA_AUTH */
 +
-diff -up dhcp-4.1.0/server/Makefile.am.ldap dhcp-4.1.0/server/Makefile.am
---- dhcp-4.1.0/server/Makefile.am.ldap	2007-05-29 06:32:11.000000000 -1000
-+++ dhcp-4.1.0/server/Makefile.am	2009-06-29 21:56:14.000000000 -1000
-@@ -4,12 +4,11 @@ dist_sysconf_DATA = dhcpd.conf
- sbin_PROGRAMS = dhcpd
- dhcpd_SOURCES = dhcpd.c dhcp.c bootp.c confpars.c db.c class.c failover.c \
- 		omapi.c mdb.c stables.c salloc.c ddns.c dhcpleasequery.c \
--		dhcpv6.c mdb6.c
-+		dhcpv6.c mdb6.c ldap.c ldap_casa.c
+diff -Naur dhcp-3.1.2.orig/includes/site.h dhcp-3.1.2/includes/site.h
+--- dhcp-3.1.2.orig/includes/site.h	2009-07-07 18:51:05.482538734 +0000
++++ dhcp-3.1.2/includes/site.h	2009-07-07 18:48:02.127864146 +0000
+@@ -194,3 +194,18 @@
+    traces. */
  
--# libomapi.a this is here twice to handle circular library dependencies :(
--dhcpd_LDADD = ../common/libdhcp.a ../omapip/libomapi.a ../dst/libdst.a \
--	      ../dhcpctl/libdhcpctl.a ../minires/libres.a \
--	      ../omapip/libomapi.a
-+dhcpd_CFLAGS = $(LDAP_CFLAGS) $(LDAPSSL_CFLAGS)
-+dhcpd_LDADD = ../common/libdhcp.a ../omapip/libomapi.a ../minires/libres.a \
-+	      ../dhcpctl/libdhcpctl.a ../dst/libdst.a $(LDAP_LIBS)
+ #define TRACING
++
++/* Define this if you want to read your config from LDAP. Read README.ldap
++   about how to set this up */
++
++/* #define LDAP_CONFIGURATION */
++
++/* Define this if you want to enable LDAP over a SSL connection. You will need
++   to add -lcrypto -lssl to the LIBS= line of server/Makefile */
++
++/* #define USE_SSL */
++
++#define _PATH_DHCPD_DB    "/var/lib/dhcpd/dhcpd.leases"
++#define _PATH_DHCLIENT_DB "/var/lib/dhclient/dhclient.leases"
++#define _PATH_DHCPD_DB    "/var/lib/dhcpd/dhcpd.leases"
++#define _PATH_DHCLIENT_DB "/var/lib/dhclient/dhclient.leases"
+diff -Naur dhcp-3.1.2.orig/server/Makefile.dist dhcp-3.1.2/server/Makefile.dist
+--- dhcp-3.1.2.orig/server/Makefile.dist	2009-07-07 18:51:05.442615497 +0000
++++ dhcp-3.1.2/server/Makefile.dist	2009-07-07 18:50:05.178744275 +0000
+@@ -25,14 +25,14 @@
+ CATMANPAGES = dhcpd.cat8 dhcpd.conf.cat5 dhcpd.leases.cat5
+ SEDMANPAGES = dhcpd.man8 dhcpd.conf.man5 dhcpd.leases.man5
+ SRCS   = dhcpd.c dhcp.c bootp.c confpars.c db.c class.c failover.c \
+-	 omapi.c mdb.c stables.c salloc.c ddns.c dhcpleasequery.c
++	 omapi.c mdb.c stables.c salloc.c ddns.c dhcpleasequery.c ldap.c ldap_casa.c
+ OBJS   = dhcpd.o dhcp.o bootp.o confpars.o db.o class.o failover.o \
+-	 omapi.o mdb.o stables.o salloc.o ddns.o dhcpleasequery.o
++	 omapi.o mdb.o stables.o salloc.o ddns.o dhcpleasequery.o ldap.o ldap_casa.o
+ PROG   = dhcpd
+ MAN    = dhcpd.8 dhcpd.conf.5 dhcpd.leases.5
  
- man_MANS = dhcpd.8 dhcpd.conf.5 dhcpd.leases.5
- EXTRA_DIST = $(man_MANS)
-diff -up dhcp-4.1.0/server/class.c.ldap dhcp-4.1.0/server/class.c
---- dhcp-4.1.0/server/class.c.ldap	2007-09-05 07:32:10.000000000 -1000
-+++ dhcp-4.1.0/server/class.c	2009-06-29 21:34:28.000000000 -1000
-@@ -84,6 +84,7 @@ int check_collection (packet, lease, col
+ INCLUDES = -I$(TOP) $(BINDINC) -I$(TOP)/includes
+-DHCPLIB = ../common/libdhcp.a $(BINDLIB) ../omapip/libomapi.a ../dst/libdst.a
++DHCPLIB = ../common/libdhcp.a $(BINDLIB) ../omapip/libomapi.a ../dst/libdst-nomd5.a
+ CFLAGS = $(DEBUG) $(PREDEFINES) $(INCLUDES) $(COPTS)
+ 
+ all:	$(PROG) $(CATMANPAGES)
+@@ -106,6 +106,6 @@
+ 		-e "s#RUNDIR#$(VARRUN)#g" < dhcpd.leases.5 >dhcpd.leases.man5
+ 
+ dhcpd:	$(OBJS) $(COBJ) $(DHCPLIB)
+-	$(CC) $(LFLAGS) -o dhcpd $(OBJS) $(DHCPLIB) $(LIBS)
++	$(CC) $(LFLAGS) -o dhcpd $(OBJS) $(DHCPLIB) $(LIBS) $(LDAPLIB) $(SSLLIB)
+ 
+ # Dependencies (semi-automatically-generated)
+diff -Naur dhcp-3.1.2.orig/server/class.c dhcp-3.1.2/server/class.c
+--- dhcp-3.1.2.orig/server/class.c	2009-07-07 18:51:05.470965512 +0000
++++ dhcp-3.1.2/server/class.c	2009-07-07 18:48:02.002860549 +0000
+@@ -90,6 +90,7 @@
  	int matched = 0;
  	int status;
  	int ignorep;
@@ -367,7 +394,7 @@ diff -up dhcp-4.1.0/server/class.c.ldap dhcp-4.1.0/server/class.c
  
  	for (class = collection -> classes; class; class = class -> nic) {
  #if defined (DEBUG_CLASS_MATCHING)
-@@ -129,9 +130,15 @@ int check_collection (packet, lease, col
+@@ -135,9 +136,15 @@
  				   class -> submatch, MDL));
  			if (status && data.len) {
  				nc = (struct class *)0;
@@ -386,10 +413,10 @@ diff -up dhcp-4.1.0/server/class.c.ldap dhcp-4.1.0/server/class.c
  #if defined (DEBUG_CLASS_MATCHING)
  					log_info ("matches subclass %s.",
  					      print_hex_1 (data.len,
-diff -up dhcp-4.1.0/server/confpars.c.ldap dhcp-4.1.0/server/confpars.c
---- dhcp-4.1.0/server/confpars.c.ldap	2008-10-22 01:41:57.000000000 -1000
-+++ dhcp-4.1.0/server/confpars.c	2009-06-29 21:34:28.000000000 -1000
-@@ -61,7 +61,17 @@ void parse_trace_setup ()
+diff -Naur dhcp-3.1.2.orig/server/confpars.c dhcp-3.1.2/server/confpars.c
+--- dhcp-3.1.2.orig/server/confpars.c	2009-07-07 18:51:05.470965512 +0000
++++ dhcp-3.1.2/server/confpars.c	2009-07-07 18:48:01.982027676 +0000
+@@ -63,7 +63,17 @@
  
  isc_result_t readconf ()
  {
@@ -408,10 +435,10 @@ diff -up dhcp-4.1.0/server/confpars.c.ldap dhcp-4.1.0/server/confpars.c
  }
  
  isc_result_t read_conf_file (const char *filename, struct group *group,
-diff -up dhcp-4.1.0/server/dhcpd.c.ldap dhcp-4.1.0/server/dhcpd.c
---- dhcp-4.1.0/server/dhcpd.c.ldap	2008-03-18 08:28:14.000000000 -1000
-+++ dhcp-4.1.0/server/dhcpd.c	2009-06-29 21:34:28.000000000 -1000
-@@ -598,6 +598,14 @@ main(int argc, char **argv) {
+diff -Naur dhcp-3.1.2.orig/server/dhcpd.c dhcp-3.1.2/server/dhcpd.c
+--- dhcp-3.1.2.orig/server/dhcpd.c	2009-07-07 18:51:05.447243612 +0000
++++ dhcp-3.1.2/server/dhcpd.c	2009-07-07 18:48:01.929363189 +0000
+@@ -439,6 +439,14 @@
  	/* Add the ddns update style enumeration prior to parsing. */
  	add_enumeration (&ddns_styles);
  	add_enumeration (&syslog_enum);
@@ -426,10 +453,10 @@ diff -up dhcp-4.1.0/server/dhcpd.c.ldap dhcp-4.1.0/server/dhcpd.c
  
  	if (!group_allocate (&root_group, MDL))
  		log_fatal ("Can't allocate root group!");
-diff -up /dev/null dhcp-4.1.0/server/ldap.c
---- /dev/null	2009-06-30 13:32:15.891073262 -1000
-+++ dhcp-4.1.0/server/ldap.c	2009-06-29 21:34:28.000000000 -1000
-@@ -0,0 +1,2004 @@
+diff -Naur dhcp-3.1.2.orig/server/ldap.c dhcp-3.1.2/server/ldap.c
+--- dhcp-3.1.2.orig/server/ldap.c	1970-01-01 00:00:00.000000000 +0000
++++ dhcp-3.1.2/server/ldap.c	2009-07-07 18:48:01.943252912 +0000
+@@ -0,0 +1,2003 @@
 +/* ldap.c
 +
 +   Routines for reading the configuration from LDAP */
@@ -471,7 +498,6 @@ diff -up /dev/null dhcp-4.1.0/server/ldap.c
 +
 +#include "dhcpd.h"
 +#include <signal.h>
-+#include <errno.h>
 +
 +#if defined(LDAP_CONFIGURATION)
 +
@@ -1231,7 +1257,7 @@ diff -up /dev/null dhcp-4.1.0/server/ldap.c
 +      return;
 +    }
 +
-+  sprintf(uri, "ldap://%s:%d", ldap_server, ldap_port);
++  sprintf("ldap://%s:%d", ldap_server, ldap_port);
 +  ldap_initialize(&ld, uri);
 +
 +  if (ld == NULL)
@@ -1306,8 +1332,8 @@ diff -up /dev/null dhcp-4.1.0/server/ldap.c
 +      creds.bv_val = strdup(ldap_password);
 +      creds.bv_len = strlen(ldap_password);
 +
-+      if ((ret = ldap_sasl_bind_s (ld, ldap_username, LDAP_SASL_SIMPLE,
-+                                   &creds, NULL, NULL, NULL)) != LDAP_SUCCESS)
++      if ((ret == ldap_sasl_bind_s (ld, ldap_username, LDAP_SASL_SIMPLE,
++                                    &creds, NULL, NULL, NULL)) != LDAP_SUCCESS)
 +        {
 +          log_error ("Error: Cannot login into ldap server %s:%d: %s",
 +                     ldap_server, ldap_port, ldap_err2string (ret));
@@ -1711,7 +1737,7 @@ diff -up /dev/null dhcp-4.1.0/server/ldap.c
 +    return (EOF);
 +
 +  cfile->bufix = 1;
-+  cfile->buflen = strlen (cfile->inbuf) - 1;
++  cfile->buflen = strlen (cfile->inbuf);
 +  if (cfile->buflen > 0)
 +    ldap_write_debug (cfile->inbuf, cfile->buflen);
 +
@@ -2434,9 +2460,9 @@ diff -up /dev/null dhcp-4.1.0/server/ldap.c
 +}
 +
 +#endif
-diff -up /dev/null dhcp-4.1.0/server/ldap_casa.c
---- /dev/null	2009-06-30 13:32:15.891073262 -1000
-+++ dhcp-4.1.0/server/ldap_casa.c	2009-06-29 21:34:28.000000000 -1000
+diff -Naur dhcp-3.1.2.orig/server/ldap_casa.c dhcp-3.1.2/server/ldap_casa.c
+--- dhcp-3.1.2.orig/server/ldap_casa.c	1970-01-01 00:00:00.000000000 +0000
++++ dhcp-3.1.2/server/ldap_casa.c	2009-07-07 18:48:01.861655127 +0000
 @@ -0,0 +1,138 @@
 +/* ldap_casa.c
 +   
@@ -2576,70 +2602,70 @@ diff -up /dev/null dhcp-4.1.0/server/ldap_casa.c
 +
 +#endif /* LDAP_CASA_AUTH */
 +
-diff -up dhcp-4.1.0/server/mdb.c.ldap dhcp-4.1.0/server/mdb.c
---- dhcp-4.1.0/server/mdb.c.ldap	2008-02-28 11:21:56.000000000 -1000
-+++ dhcp-4.1.0/server/mdb.c	2009-06-29 21:34:28.000000000 -1000
-@@ -600,6 +600,12 @@ int find_hosts_by_haddr (struct host_dec
- 			 const char *file, int line)
+diff -Naur dhcp-3.1.2.orig/server/mdb.c dhcp-3.1.2/server/mdb.c
+--- dhcp-3.1.2.orig/server/mdb.c	2009-07-07 18:51:05.437983960 +0000
++++ dhcp-3.1.2/server/mdb.c	2009-07-07 18:48:01.861655127 +0000
+@@ -454,6 +454,12 @@
  {
+ 	struct host_decl *foo;
  	struct hardware h;
-+#if defined(LDAP_CONFIGURATION)
 +	int ret;
 +
++#if defined(LDAP_CONFIGURATION)
 +	if ((ret = find_haddr_in_ldap (hp, htype, hlen, haddr, file, line)))
 +		return ret;
 +#endif
  
  	h.hlen = hlen + 1;
  	h.hbuf [0] = htype;
-diff -up dhcp-4.1.0/server/stables.c.ldap dhcp-4.1.0/server/stables.c
---- dhcp-4.1.0/server/stables.c.ldap	2008-11-03 08:13:58.000000000 -1000
-+++ dhcp-4.1.0/server/stables.c	2009-06-29 21:34:28.000000000 -1000
-@@ -244,9 +244,107 @@ static struct option server_options[] = 
- 	{ "delayed-ack", "S",			&server_universe,  58, 1 },
- 	{ "max-ack-delay", "L",			&server_universe,  59, 1 },
- #endif
+diff -Naur dhcp-3.1.2.orig/server/stables.c dhcp-3.1.2/server/stables.c
+--- dhcp-3.1.2.orig/server/stables.c	2009-07-07 18:51:05.473280548 +0000
++++ dhcp-3.1.2/server/stables.c	2009-07-07 18:48:02.009806144 +0000
+@@ -238,9 +238,107 @@
+ 	{ "adaptive-lease-time-threshold", "B",	&server_universe,  50, 1 },
+ 	{ "do-reverse-updates", "f",		&server_universe,  51, 1 },
+ 	{ "fqdn-reply", "f",			&server_universe,  52, 1 },
 +#if defined(LDAP_CONFIGURATION)
-+	{ "ldap-server", "t",			&server_universe,  60, 1 },
-+	{ "ldap-port", "d",			&server_universe,  61, 1 },
-+	{ "ldap-username", "t",			&server_universe,  62, 1 },
-+	{ "ldap-password", "t",			&server_universe,  63, 1 },
-+	{ "ldap-base-dn", "t",			&server_universe,  64, 1 },
-+	{ "ldap-method", "Nldap-methods.",	&server_universe,  65, 1 },
-+	{ "ldap-debug-file", "t",		&server_universe,  66, 1 },
-+	{ "ldap-dhcp-server-cn", "t",		&server_universe,  67, 1 },
-+	{ "ldap-referrals", "f",		&server_universe,  68, 1 },
++	{ "ldap-server", "t",				&server_universe, 53 },
++	{ "ldap-port", "d",					&server_universe, 54 },
++	{ "ldap-username", "t",				&server_universe, 55 },
++	{ "ldap-password", "t",				&server_universe, 56 },
++	{ "ldap-base-dn", "t",				&server_universe, 57 },
++	{ "ldap-method", "Nldap-methods.",	&server_universe, 58 },
++	{ "ldap-debug-file", "t",			&server_universe, 59 },
++	{ "ldap-dhcp-server-cn", "t",		&server_universe, 60 },
++	{ "ldap-referrals", "f",			&server_universe, 61 },
 +#if defined(USE_SSL)
-+	{ "ldap-ssl", "Nldap-ssl-usage.",	&server_universe,  69, 1 },
-+	{ "ldap-tls-reqcert", "Nldap-tls-reqcert.",	&server_universe,  70, 1 },
-+	{ "ldap-tls-ca-file", "t",		&server_universe,  71, 1 },
-+	{ "ldap-tls-ca-dir", "t",		&server_universe,  72, 1 },
-+	{ "ldap-tls-cert", "t",			&server_universe,  73, 1 },
-+	{ "ldap-tls-key", "t",			&server_universe,  74, 1 },
-+	{ "ldap-tls-crlcheck", "Nldap-tls-crlcheck.",	&server_universe,  75, 1 },
-+	{ "ldap-tls-ciphers", "t",		&server_universe,  76, 1 },
-+	{ "ldap-tls-randfile", "t",		&server_universe,  77, 1 },
++	{ "ldap-ssl", "Nldap-ssl-usage.",	&server_universe, 62 },
++	{ "ldap-tls-reqcert", "Nldap-tls-reqcert.",	&server_universe, 63 },
++	{ "ldap-tls-ca-file", "t",			&server_universe, 64 },
++	{ "ldap-tls-ca-dir", "t",			&server_universe, 65 },
++	{ "ldap-tls-cert", "t",				&server_universe, 66 },
++	{ "ldap-tls-key", "t",				&server_universe, 67 },
++	{ "ldap-tls-crlcheck", "Nldap-tls-crlcheck.",	&server_universe, 68 },
++	{ "ldap-tls-ciphers", "t",			&server_universe, 69 },
++	{ "ldap-tls-randfile", "t",			&server_universe, 70 },
 +#else
-+	{ "unknown-69", "X",			&server_universe,  69, 1 },
-+	{ "unknown-70", "X",			&server_universe,  70, 1 },
-+	{ "unknown-71", "X",			&server_universe,  71, 1 },
-+	{ "unknown-72", "X",			&server_universe,  72, 1 },
-+	{ "unknown-73", "X",			&server_universe,  73, 1 },
-+	{ "unknown-74", "X",			&server_universe,  74, 1 },
-+	{ "unknown-75", "X",			&server_universe,  75, 1 },
-+	{ "unknown-76", "X",			&server_universe,  76, 1 },
-+	{ "unknown-77", "X",			&server_universe,  77, 1 },
++	{ "unknown-62", "X",			&server_universe, 62 },
++	{ "unknown-63", "X",			&server_universe, 63 },
++	{ "unknown-64", "X",			&server_universe, 64 },
++	{ "unknown-65", "X",			&server_universe, 65 },
++	{ "unknown-66", "X",			&server_universe, 66 },
++	{ "unknown-67", "X",			&server_universe, 67 },
++	{ "unknown-68", "X",			&server_universe, 68 },
++	{ "unknown-69", "X",			&server_universe, 69 },
++	{ "unknown-70", "X",			&server_universe, 70 },
 +#endif
 +#else
-+	{ "unknown-60", "X",			&server_universe,  60, 1 },
-+	{ "unknown-61", "X",			&server_universe,  61, 1 },
-+	{ "unknown-62", "X",			&server_universe,  62, 1 },
-+	{ "unknown-63", "X",			&server_universe,  63, 1 },
-+	{ "unknown-64", "X",			&server_universe,  64, 1 },
-+	{ "unknown-65", "X",			&server_universe,  65, 1 },
-+	{ "unknown-66", "X",			&server_universe,  66, 1 },
-+	{ "unknown-67", "X",			&server_universe,  67, 1 },
-+	{ "unknown-68", "X",			&server_universe,  68, 1 },
++	{ "unknown-53", "X",			&server_universe, 53 },
++	{ "unknown-54", "X",			&server_universe, 54 },
++	{ "unknown-55", "X",			&server_universe, 55 },
++	{ "unknown-56", "X",			&server_universe, 56 },
++	{ "unknown-57", "X",			&server_universe, 57 },
++	{ "unknown-58", "X",			&server_universe, 58 },
++	{ "unknown-59", "X",			&server_universe, 59 },
++	{ "unknown-60", "X",			&server_universe, 60 },
++	{ "unknown-61", "X",			&server_universe, 61 },
 +#endif
  	{ NULL, NULL, NULL, 0, 0 }
  };
@@ -2653,7 +2679,7 @@ diff -up dhcp-4.1.0/server/stables.c.ldap dhcp-4.1.0/server/stables.c
 +
 +struct enumeration ldap_methods = {
 +	(struct enumeration *)0,
-+	"ldap-methods", 1,
++	"ldap-methods",
 +	ldap_values
 +};
 +
@@ -2668,7 +2694,7 @@ diff -up dhcp-4.1.0/server/stables.c.ldap dhcp-4.1.0/server/stables.c
 +
 +struct enumeration ldap_ssl_usage_enum = {
 +	(struct enumeration *)0,
-+	"ldap-ssl-usage", 1,
++	"ldap-ssl-usage",
 +	ldap_ssl_usage_values
 +};
 +
@@ -2682,7 +2708,7 @@ diff -up dhcp-4.1.0/server/stables.c.ldap dhcp-4.1.0/server/stables.c
 +};
 +struct enumeration ldap_tls_reqcert_enum = {
 +	(struct enumeration *)0,
-+	"ldap-tls-reqcert", 1,
++	"ldap-tls-reqcert",
 +	ldap_tls_reqcert_values
 +};
 +
@@ -2694,7 +2720,7 @@ diff -up dhcp-4.1.0/server/stables.c.ldap dhcp-4.1.0/server/stables.c
 +};
 +struct enumeration ldap_tls_crlcheck_enum = {
 +	(struct enumeration *)0,
-+	"ldap-tls-crlcheck", 1,
++	"ldap-tls-crlcheck",
 +	ldap_tls_crlcheck_values
 +};
 +#endif
