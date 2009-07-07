@@ -1,7 +1,7 @@
 LDAP Support in DHCP
 Original Author: Brian Masney <masneyb@gftp.org>
 Current Maintainer: David Cantrell <dcantrell@redhat.com>
-Last updated 30-Jun-2009
+Last updated 07-Jul-2009
 
 This document describes setting up the DHCP server to read it's configuration
 from LDAP.  This work is based on the IETF document
@@ -45,18 +45,19 @@ You should now be ready to build DHCP.  If you would like to enable LDAP in
 dhcpd, you will need to perform the following steps:
 
   * Apply the patch here to the unpacked ISC dhcp source tree.
-  * Regenerate the configure script (requires GNU autoconf and automake):
-        aclocal
-        libtoolize --copy --force
-        autoconf
-        autoheader
-        automake --foreign --add-missing --copy
-  * Run ./configure with the '--with-ldap' argument to enable OpenLDAP.
-    If you want LDAP over SSL, also use the '--with-ldapcrypto' argument.
+  * Configure for the system :
+        echo "LDAPLIB = -lldap" >> site.conf
+            to enable OpenLDAP
+                and
+        echo "SSLLIB = -lcrypto -lssl" >> site.conf
+            to enable LDAP over SSL
+  * Run ./configure with the --copts "-DLDAP_CONFIGURATION" argument to enable
+    OpenLDAP.
+    If you want LDAP over SSL, use --copts "-DLDAP_CONFIGURATION -DUSE_SSL"
   * Run 'make' to build ISC dhcp.
 
 Once you have DHCP installed, you will need to setup your initial plaintext
-config file. In my /etc/dhcpd.conf file, I have:
+config file. In my /etc/dhcp/dhcpd.conf file, I have:
 
 ldap-server "localhost";
 ldap-port 389;
@@ -100,8 +101,8 @@ give a 10.100.0.x address to machines that have a host entry in LDAP.
 Otherwise, it will give a 10.200.0.x address to them.  (NOTE: replace
 dc=ntelos, dc=net with your base dn). If you would like to convert your
 existing dhcpd.conf file to LDIF format, there is a script
-contrib/dhcpd-conf-to-ldap.pl that will convert it for you.  Type
-dhcpd-conf-to-ldap.pl --help to see the usage information for this script.
+dhcpd-conf-to-ldap that will convert it for you.  Type
+dhcpd-conf-to-ldap --help to see the usage information for this script.
 
 # You must specify the server's host name in LDAP that you are going to run
 # DHCP on and point it to which config tree you want to use.  Whenever DHCP
