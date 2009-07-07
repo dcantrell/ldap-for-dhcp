@@ -1,8 +1,8 @@
 PKG   = ldap-for-dhcp
-VER   = 4.1.0
-REL   = 3
+VER   = 3.1.2
+REL   = 1
 
-FILES = LICENSE dhcp-$(VER)-ldap.patch dhcpd-conf-to-ldap \
+FILES = LICENSE.ldap dhcp-$(VER)-ldap.patch dhcpd-conf-to-ldap \
         README.ldap dhcp.schema draft-ietf-dhc-ldap-schema-01.txt
 
 all: $(FILES)
@@ -11,7 +11,7 @@ all: $(FILES)
 	cp -p $(FILES) $(PKG)-$(VER)-$(REL)
 	tar -cvf - $(PKG)-$(VER)-$(REL) | gzip -9c > $(PKG)-$(VER)-$(REL).tar.gz
 
-LICENSE: LICENSE.in
+LICENSE.ldap: LICENSE.in
 	sed -e "s|%VERSION%|$(VER)|g" < $< > $@
 
 tag: all
@@ -36,4 +36,4 @@ push:
 clean:
 	-rm -rf $(PKG)-$(VER)-$(REL).tar.gz
 	-rm -rf $(PKG)-$(VER)-$(REL)
-	-rm -rf LICENSE
+	-rm -rf LICENSE.ldap
