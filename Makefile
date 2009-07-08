@@ -1,6 +1,6 @@
 PKG   = ldap-for-dhcp
 VER   = 3.1.2
-REL   = 1
+REL   = 2
 
 FILES = LICENSE.ldap dhcp-$(VER)-ldap.patch dhcpd-conf-to-ldap \
         README.ldap dhcp.schema draft-ietf-dhc-ldap-schema-01.txt
