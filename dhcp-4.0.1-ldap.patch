@@ -1,6 +1,6 @@
 diff -up dhcp-4.0.1/common/conflex.c.ldap dhcp-4.0.1/common/conflex.c
 --- dhcp-4.0.1/common/conflex.c.ldap	2008-03-07 10:17:52.000000000 -1000
-+++ dhcp-4.0.1/common/conflex.c	2009-07-06 12:13:00.000000000 -1000
++++ dhcp-4.0.1/common/conflex.c	2009-07-08 07:24:34.000000000 -1000
 @@ -43,6 +43,7 @@ static enum dhcp_token read_string PROTO
  static enum dhcp_token read_number PROTO ((int, struct parse *));
  static enum dhcp_token read_num_or_name PROTO ((int, struct parse *));
@@ -65,7 +65,7 @@ diff -up dhcp-4.0.1/common/conflex.c.ldap dhcp-4.0.1/common/conflex.c
 +}
 diff -up dhcp-4.0.1/common/print.c.ldap dhcp-4.0.1/common/print.c
 --- dhcp-4.0.1/common/print.c.ldap	2007-10-01 04:47:35.000000000 -1000
-+++ dhcp-4.0.1/common/print.c	2009-07-06 12:13:03.000000000 -1000
++++ dhcp-4.0.1/common/print.c	2009-07-08 07:24:34.000000000 -1000
 @@ -163,9 +163,9 @@ char *print_base64 (const unsigned char 
  }
  
@@ -81,7 +81,7 @@ diff -up dhcp-4.0.1/common/print.c.ldap dhcp-4.0.1/common/print.c
  	char *s;
 diff -up dhcp-4.0.1/configure.ac.ldap dhcp-4.0.1/configure.ac
 --- dhcp-4.0.1/configure.ac.ldap	2008-12-23 09:01:39.000000000 -1000
-+++ dhcp-4.0.1/configure.ac	2009-07-06 12:13:07.000000000 -1000
++++ dhcp-4.0.1/configure.ac	2009-07-08 07:24:34.000000000 -1000
 @@ -284,6 +284,33 @@ AC_CHECK_MEMBER(struct msghdr.msg_contro
  #include <sys/socket.h>
  	])
@@ -118,7 +118,7 @@ diff -up dhcp-4.0.1/configure.ac.ldap dhcp-4.0.1/configure.ac
  CFLAGS="$CFLAGS $STD_CWARNINGS"
 diff -up dhcp-4.0.1/dst/Makefile.am.ldap dhcp-4.0.1/dst/Makefile.am
 --- dhcp-4.0.1/dst/Makefile.am.ldap	2007-05-29 06:32:10.000000000 -1000
-+++ dhcp-4.0.1/dst/Makefile.am	2009-07-06 12:13:11.000000000 -1000
++++ dhcp-4.0.1/dst/Makefile.am	2009-07-08 07:24:34.000000000 -1000
 @@ -2,7 +2,11 @@ AM_CPPFLAGS = -DMINIRES_LIB -DHMAC_MD5
  
  lib_LIBRARIES = libdst.a
@@ -134,7 +134,7 @@ diff -up dhcp-4.0.1/dst/Makefile.am.ldap dhcp-4.0.1/dst/Makefile.am
  EXTRA_DIST = dst_internal.h md5.h md5_locl.h
 diff -up dhcp-4.0.1/includes/dhcpd.h.ldap dhcp-4.0.1/includes/dhcpd.h
 --- dhcp-4.0.1/includes/dhcpd.h.ldap	2008-02-08 08:46:34.000000000 -1000
-+++ dhcp-4.0.1/includes/dhcpd.h	2009-07-06 12:13:15.000000000 -1000
++++ dhcp-4.0.1/includes/dhcpd.h	2009-07-08 07:26:37.000000000 -1000
 @@ -102,6 +102,11 @@ typedef time_t TIME;
  #include <isc-dhcp/result.h>
  #include <omapip/omapip_p.h>
@@ -194,25 +194,25 @@ diff -up dhcp-4.0.1/includes/dhcpd.h.ldap dhcp-4.0.1/includes/dhcpd.h
  #endif
  
 +#if defined(LDAP_CONFIGURATION)
-+# define SV_LDAP_SERVER			60
-+# define SV_LDAP_PORT			61
-+# define SV_LDAP_USERNAME		62
-+# define SV_LDAP_PASSWORD		63
-+# define SV_LDAP_BASE_DN		64
-+# define SV_LDAP_METHOD			65
-+# define SV_LDAP_DEBUG_FILE		66
-+# define SV_LDAP_DHCP_SERVER_CN		67
-+# define SV_LDAP_REFERRALS		68
++# define SV_LDAP_SERVER			57
++# define SV_LDAP_PORT			58
++# define SV_LDAP_USERNAME		59
++# define SV_LDAP_PASSWORD		60
++# define SV_LDAP_BASE_DN		61
++# define SV_LDAP_METHOD			62
++# define SV_LDAP_DEBUG_FILE		63
++# define SV_LDAP_DHCP_SERVER_CN		64
++# define SV_LDAP_REFERRALS		65
 +#if defined (USE_SSL)
-+# define SV_LDAP_SSL			69
-+# define SV_LDAP_TLS_REQCERT		70
-+# define SV_LDAP_TLS_CA_FILE		71
-+# define SV_LDAP_TLS_CA_DIR		72
-+# define SV_LDAP_TLS_CERT		73
-+# define SV_LDAP_TLS_KEY		74
-+# define SV_LDAP_TLS_CRLCHECK		75
-+# define SV_LDAP_TLS_CIPHERS		76
-+# define SV_LDAP_TLS_RANDFILE		77
++# define SV_LDAP_SSL			66
++# define SV_LDAP_TLS_REQCERT		67
++# define SV_LDAP_TLS_CA_FILE		68
++# define SV_LDAP_TLS_CA_DIR		69
++# define SV_LDAP_TLS_CERT		70
++# define SV_LDAP_TLS_KEY		71
++# define SV_LDAP_TLS_CRLCHECK		72
++# define SV_LDAP_TLS_CIPHERS		73
++# define SV_LDAP_TLS_RANDFILE		74
 +#endif
 +#endif
 +
@@ -250,8 +250,8 @@ diff -up dhcp-4.0.1/includes/dhcpd.h.ldap dhcp-4.0.1/includes/dhcpd.h
  /* mdb6.c */
  HASH_FUNCTIONS_DECL(ia_na, unsigned char *, struct ia_na, ia_na_hash_t);
 diff -up /dev/null dhcp-4.0.1/includes/ldap_casa.h
---- /dev/null	2009-07-06 09:02:30.109137084 -1000
-+++ dhcp-4.0.1/includes/ldap_casa.h	2009-07-06 12:13:20.000000000 -1000
+--- /dev/null	2009-07-08 03:35:30.103138421 -1000
++++ dhcp-4.0.1/includes/ldap_casa.h	2009-07-08 07:24:34.000000000 -1000
 @@ -0,0 +1,83 @@
 +/* ldap_casa.h
 +   
@@ -338,7 +338,7 @@ diff -up /dev/null dhcp-4.0.1/includes/ldap_casa.h
 +
 diff -up dhcp-4.0.1/server/Makefile.am.ldap dhcp-4.0.1/server/Makefile.am
 --- dhcp-4.0.1/server/Makefile.am.ldap	2007-05-29 06:32:11.000000000 -1000
-+++ dhcp-4.0.1/server/Makefile.am	2009-07-06 12:13:25.000000000 -1000
++++ dhcp-4.0.1/server/Makefile.am	2009-07-08 07:24:34.000000000 -1000
 @@ -4,12 +4,11 @@ dist_sysconf_DATA = dhcpd.conf
  sbin_PROGRAMS = dhcpd
  dhcpd_SOURCES = dhcpd.c dhcp.c bootp.c confpars.c db.c class.c failover.c \
@@ -358,7 +358,7 @@ diff -up dhcp-4.0.1/server/Makefile.am.ldap dhcp-4.0.1/server/Makefile.am
  EXTRA_DIST = $(man_MANS)
 diff -up dhcp-4.0.1/server/class.c.ldap dhcp-4.0.1/server/class.c
 --- dhcp-4.0.1/server/class.c.ldap	2007-09-05 07:32:10.000000000 -1000
-+++ dhcp-4.0.1/server/class.c	2009-07-06 12:13:28.000000000 -1000
++++ dhcp-4.0.1/server/class.c	2009-07-08 07:24:34.000000000 -1000
 @@ -84,6 +84,7 @@ int check_collection (packet, lease, col
  	int matched = 0;
  	int status;
@@ -388,7 +388,7 @@ diff -up dhcp-4.0.1/server/class.c.ldap dhcp-4.0.1/server/class.c
  					      print_hex_1 (data.len,
 diff -up dhcp-4.0.1/server/confpars.c.ldap dhcp-4.0.1/server/confpars.c
 --- dhcp-4.0.1/server/confpars.c.ldap	2008-03-07 10:17:52.000000000 -1000
-+++ dhcp-4.0.1/server/confpars.c	2009-07-06 12:13:32.000000000 -1000
++++ dhcp-4.0.1/server/confpars.c	2009-07-08 07:24:34.000000000 -1000
 @@ -60,7 +60,17 @@ void parse_trace_setup ()
  
  isc_result_t readconf ()
@@ -410,7 +410,7 @@ diff -up dhcp-4.0.1/server/confpars.c.ldap dhcp-4.0.1/server/confpars.c
  isc_result_t read_conf_file (const char *filename, struct group *group,
 diff -up dhcp-4.0.1/server/dhcpd.c.ldap dhcp-4.0.1/server/dhcpd.c
 --- dhcp-4.0.1/server/dhcpd.c.ldap	2008-03-18 08:29:16.000000000 -1000
-+++ dhcp-4.0.1/server/dhcpd.c	2009-07-06 12:13:35.000000000 -1000
++++ dhcp-4.0.1/server/dhcpd.c	2009-07-08 07:24:34.000000000 -1000
 @@ -507,6 +507,14 @@ main(int argc, char **argv) {
  	/* Add the ddns update style enumeration prior to parsing. */
  	add_enumeration (&ddns_styles);
@@ -427,8 +427,8 @@ diff -up dhcp-4.0.1/server/dhcpd.c.ldap dhcp-4.0.1/server/dhcpd.c
  	if (!group_allocate (&root_group, MDL))
  		log_fatal ("Can't allocate root group!");
 diff -up /dev/null dhcp-4.0.1/server/ldap.c
---- /dev/null	2009-07-06 09:02:30.109137084 -1000
-+++ dhcp-4.0.1/server/ldap.c	2009-07-06 12:13:39.000000000 -1000
+--- /dev/null	2009-07-08 03:35:30.103138421 -1000
++++ dhcp-4.0.1/server/ldap.c	2009-07-08 07:24:34.000000000 -1000
 @@ -0,0 +1,2004 @@
 +/* ldap.c
 +
@@ -2435,8 +2435,8 @@ diff -up /dev/null dhcp-4.0.1/server/ldap.c
 +
 +#endif
 diff -up /dev/null dhcp-4.0.1/server/ldap_casa.c
---- /dev/null	2009-07-06 09:02:30.109137084 -1000
-+++ dhcp-4.0.1/server/ldap_casa.c	2009-07-06 12:13:42.000000000 -1000
+--- /dev/null	2009-07-08 03:35:30.103138421 -1000
++++ dhcp-4.0.1/server/ldap_casa.c	2009-07-08 07:24:34.000000000 -1000
 @@ -0,0 +1,138 @@
 +/* ldap_casa.c
 +   
@@ -2578,7 +2578,7 @@ diff -up /dev/null dhcp-4.0.1/server/ldap_casa.c
 +
 diff -up dhcp-4.0.1/server/mdb.c.ldap dhcp-4.0.1/server/mdb.c
 --- dhcp-4.0.1/server/mdb.c.ldap	2008-02-08 08:46:35.000000000 -1000
-+++ dhcp-4.0.1/server/mdb.c	2009-07-06 12:13:45.000000000 -1000
++++ dhcp-4.0.1/server/mdb.c	2009-07-08 07:24:34.000000000 -1000
 @@ -600,6 +600,12 @@ int find_hosts_by_haddr (struct host_dec
  			 const char *file, int line)
  {
@@ -2594,7 +2594,7 @@ diff -up dhcp-4.0.1/server/mdb.c.ldap dhcp-4.0.1/server/mdb.c
  	h.hbuf [0] = htype;
 diff -up dhcp-4.0.1/server/stables.c.ldap dhcp-4.0.1/server/stables.c
 --- dhcp-4.0.1/server/stables.c.ldap	2008-02-08 08:46:35.000000000 -1000
-+++ dhcp-4.0.1/server/stables.c	2009-07-06 12:24:02.000000000 -1000
++++ dhcp-4.0.1/server/stables.c	2009-07-08 07:24:34.000000000 -1000
 @@ -238,9 +238,109 @@ static struct option server_options[] = 
  	{ "dhcpv6-lease-file-name", "t",	&server_universe,  54, 1 },
  	{ "dhcpv6-pid-file-name", "t",		&server_universe,  55, 1 },
