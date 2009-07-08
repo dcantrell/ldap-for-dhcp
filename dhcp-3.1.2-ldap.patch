@@ -1,14 +1,7 @@
-Submitted By: Mario Fetka (mario dot fetka at gmail dot com)
-Date: 2009-07-07
-Initial Package Version: 3.1.2
-Origin: http://cvs.fedoraproject.org/viewvc/devel/dhcp/dhcp-3.1.0-ldap-configuration.patch?view=log&hideattic=0&pathrev=dhcp-3_1_0-10_fc9
-Upstream Status: unknown
-Description: dhcp ldap patch
- 
-diff -Naur dhcp-3.1.2.orig/common/conflex.c dhcp-3.1.2/common/conflex.c
---- dhcp-3.1.2.orig/common/conflex.c	2009-07-07 18:51:05.480223698 +0000
-+++ dhcp-3.1.2/common/conflex.c	2009-07-07 18:48:02.088508056 +0000
-@@ -47,6 +47,7 @@
+diff -up dhcp-3.1.2/common/conflex.c.ldap dhcp-3.1.2/common/conflex.c
+--- dhcp-3.1.2/common/conflex.c.ldap	2008-01-22 09:02:50.000000000 -1000
++++ dhcp-3.1.2/common/conflex.c	2009-07-08 07:49:29.000000000 -1000
+@@ -47,6 +47,7 @@ static enum dhcp_token read_string PROTO
  static enum dhcp_token read_number PROTO ((int, struct parse *));
  static enum dhcp_token read_num_or_name PROTO ((int, struct parse *));
  static enum dhcp_token intern PROTO ((unsigned char *, enum dhcp_token));
@@ -16,7 +9,7 @@ diff -Naur dhcp-3.1.2.orig/common/conflex.c dhcp-3.1.2/common/conflex.c
  
  isc_result_t new_parse (cfile, file, inbuf, buflen, name, eolp)
  	struct parse **cfile;
-@@ -74,6 +75,10 @@
+@@ -74,6 +75,10 @@ isc_result_t new_parse (cfile, file, inb
  	tmp -> file = file;
  	tmp -> eol_token = eolp;
  
@@ -27,7 +20,7 @@ diff -Naur dhcp-3.1.2.orig/common/conflex.c dhcp-3.1.2/common/conflex.c
  	tmp -> bufix = 0;
  	tmp -> buflen = buflen;
  	if (inbuf) {
-@@ -113,22 +118,11 @@
+@@ -113,22 +118,11 @@ static int get_char (cfile)
  	int c;
  
  	if (cfile -> bufix == cfile -> buflen) {
@@ -54,7 +47,7 @@ diff -Naur dhcp-3.1.2.orig/common/conflex.c dhcp-3.1.2/common/conflex.c
  	} else {
  		c = cfile -> inbuf [cfile -> bufix];
  		cfile -> bufix++;
-@@ -1213,3 +1207,23 @@
+@@ -1213,3 +1207,23 @@ static enum dhcp_token intern (atom, dfv
  	}
  	return dfv;
  }
@@ -78,10 +71,10 @@ diff -Naur dhcp-3.1.2.orig/common/conflex.c dhcp-3.1.2/common/conflex.c
 +
 +	return c;
 +}
-diff -Naur dhcp-3.1.2.orig/common/print.c dhcp-3.1.2/common/print.c
---- dhcp-3.1.2.orig/common/print.c	2009-07-07 18:51:05.475594605 +0000
-+++ dhcp-3.1.2/common/print.c	2009-07-07 18:48:02.063043646 +0000
-@@ -168,9 +168,9 @@
+diff -up dhcp-3.1.2/common/print.c.ldap dhcp-3.1.2/common/print.c
+--- dhcp-3.1.2/common/print.c.ldap	2007-05-29 07:49:44.000000000 -1000
++++ dhcp-3.1.2/common/print.c	2009-07-08 07:49:29.000000000 -1000
+@@ -168,9 +168,9 @@ char *print_base64 (const unsigned char 
  }
  
  char *print_hw_addr (htype, hlen, data)
@@ -94,9 +87,9 @@ diff -Naur dhcp-3.1.2.orig/common/print.c dhcp-3.1.2/common/print.c
  {
  	static char habuf [49];
  	char *s;
-diff -Naur dhcp-3.1.2.orig/dst/Makefile.dist dhcp-3.1.2/dst/Makefile.dist
---- dhcp-3.1.2.orig/dst/Makefile.dist	2009-07-07 18:51:05.475594605 +0000
-+++ dhcp-3.1.2/dst/Makefile.dist	2009-07-07 18:48:02.023691467 +0000
+diff -up dhcp-3.1.2/dst/Makefile.dist.ldap dhcp-3.1.2/dst/Makefile.dist
+--- dhcp-3.1.2/dst/Makefile.dist.ldap	2005-03-17 10:15:06.000000000 -1000
++++ dhcp-3.1.2/dst/Makefile.dist	2009-07-08 07:49:29.000000000 -1000
 @@ -23,12 +23,13 @@
  
  SRC    = dst_support.c dst_api.c hmac_link.c md5_dgst.c base64.c prandom.c
@@ -112,7 +105,7 @@ diff -Naur dhcp-3.1.2.orig/dst/Makefile.dist dhcp-3.1.2/dst/Makefile.dist
  
  install:
  
-@@ -37,11 +38,16 @@
+@@ -37,11 +38,16 @@ libdst.a:	$(OBJ)
  	ar cruv libdst.a $(OBJ)
  	$(RANLIB) libdst.a
  
@@ -130,10 +123,10 @@ diff -Naur dhcp-3.1.2.orig/dst/Makefile.dist dhcp-3.1.2/dst/Makefile.dist
  
  realclean: clean
  	-rm -f *~ $(CATMANPAGES) $(SEDMANPAGES)
-diff -Naur dhcp-3.1.2.orig/includes/dhcpd.h dhcp-3.1.2/includes/dhcpd.h
---- dhcp-3.1.2.orig/includes/dhcpd.h	2009-07-07 18:51:05.480223698 +0000
-+++ dhcp-3.1.2/includes/dhcpd.h	2009-07-07 18:48:02.123232120 +0000
-@@ -81,6 +81,11 @@
+diff -up dhcp-3.1.2/includes/dhcpd.h.ldap dhcp-3.1.2/includes/dhcpd.h
+--- dhcp-3.1.2/includes/dhcpd.h.ldap	2008-01-22 09:02:51.000000000 -1000
++++ dhcp-3.1.2/includes/dhcpd.h	2009-07-08 07:50:52.000000000 -1000
+@@ -81,6 +81,11 @@ typedef struct hash_table class_hash_t;
  #include <isc-dhcp/result.h>
  #include <omapip/omapip_p.h>
  
@@ -145,7 +138,7 @@ diff -Naur dhcp-3.1.2.orig/includes/dhcpd.h dhcp-3.1.2/includes/dhcpd.h
  #if !defined (BYTE_NAME_HASH_SIZE)
  # define BYTE_NAME_HASH_SIZE	401	/* Default would be rediculous. */
  #endif
-@@ -251,6 +256,8 @@
+@@ -251,6 +256,8 @@ struct parse {
  	char *inbuf;
  	unsigned bufix, buflen;
  	unsigned bufsiz;
@@ -154,7 +147,7 @@ diff -Naur dhcp-3.1.2.orig/includes/dhcpd.h dhcp-3.1.2/includes/dhcpd.h
  };
  
  /* Variable-length array of data. */
-@@ -362,6 +369,32 @@
+@@ -362,6 +369,32 @@ struct hardware {
  	u_int8_t hbuf [17];
  };
  
@@ -187,37 +180,37 @@ diff -Naur dhcp-3.1.2.orig/includes/dhcpd.h dhcp-3.1.2/includes/dhcpd.h
  typedef enum {
  	server_startup = 0,
  	server_running = 1,
-@@ -558,6 +591,29 @@
+@@ -558,6 +591,29 @@ struct lease_state {
  # define DEFAULT_PING_TIMEOUT 1
  #endif
  
 +#if defined(LDAP_CONFIGURATION)
-+# define SV_LDAP_SERVER		47
-+# define SV_LDAP_PORT		48
-+# define SV_LDAP_USERNAME	49
-+# define SV_LDAP_PASSWORD	50
-+# define SV_LDAP_BASE_DN	51
-+# define SV_LDAP_METHOD		52
-+# define SV_LDAP_DEBUG_FILE		53
-+# define SV_LDAP_DHCP_SERVER_CN		54
-+# define SV_LDAP_REFERRALS		55
++# define SV_LDAP_SERVER		53
++# define SV_LDAP_PORT		54
++# define SV_LDAP_USERNAME	55
++# define SV_LDAP_PASSWORD	56
++# define SV_LDAP_BASE_DN	57
++# define SV_LDAP_METHOD		58
++# define SV_LDAP_DEBUG_FILE		59
++# define SV_LDAP_DHCP_SERVER_CN		60
++# define SV_LDAP_REFERRALS		61
 +#if defined (USE_SSL)
-+# define SV_LDAP_SSL		56
-+# define SV_LDAP_TLS_REQCERT		57
-+# define SV_LDAP_TLS_CA_FILE		58
-+# define SV_LDAP_TLS_CA_DIR		59
-+# define SV_LDAP_TLS_CERT		60
-+# define SV_LDAP_TLS_KEY		61
-+# define SV_LDAP_TLS_CRLCHECK		62
-+# define SV_LDAP_TLS_CIPHERS		63
-+# define SV_LDAP_TLS_RANDFILE		64
++# define SV_LDAP_SSL		62
++# define SV_LDAP_TLS_REQCERT		63
++# define SV_LDAP_TLS_CA_FILE		64
++# define SV_LDAP_TLS_CA_DIR		65
++# define SV_LDAP_TLS_CERT		66
++# define SV_LDAP_TLS_KEY		67
++# define SV_LDAP_TLS_CRLCHECK		68
++# define SV_LDAP_TLS_CIPHERS		69
++# define SV_LDAP_TLS_RANDFILE		70
 +#endif
 +#endif
 +
  #if !defined (DEFAULT_DEFAULT_LEASE_TIME)
  # define DEFAULT_DEFAULT_LEASE_TIME 43200
  #endif
-@@ -1707,7 +1763,7 @@
+@@ -1707,7 +1763,7 @@ extern int db_time_format;
  char *quotify_string (const char *, const char *, int);
  char *quotify_buf (const unsigned char *, unsigned, const char *, int);
  char *print_base64 (const unsigned char *, unsigned, const char *, int);
@@ -226,7 +219,7 @@ diff -Naur dhcp-3.1.2.orig/includes/dhcpd.h dhcp-3.1.2/includes/dhcpd.h
  void print_lease PROTO ((struct lease *));
  void dump_raw PROTO ((const unsigned char *, unsigned));
  void dump_packet_option (struct option_cache *, struct packet *,
-@@ -2817,3 +2873,18 @@
+@@ -2817,3 +2873,18 @@ OMAPI_OBJECT_ALLOC_DECL (dhcp_failover_l
  #endif /* FAILOVER_PROTOCOL */
  
  const char *binding_state_print (enum failover_state);
@@ -245,9 +238,9 @@ diff -Naur dhcp-3.1.2.orig/includes/dhcpd.h dhcp-3.1.2/includes/dhcpd.h
 +int find_subclass_in_ldap (struct class *, struct class **,
 +                           struct data_string *);
 +#endif
-diff -Naur dhcp-3.1.2.orig/includes/ldap_casa.h dhcp-3.1.2/includes/ldap_casa.h
---- dhcp-3.1.2.orig/includes/ldap_casa.h	1970-01-01 00:00:00.000000000 +0000
-+++ dhcp-3.1.2/includes/ldap_casa.h	2009-07-07 18:48:02.141747024 +0000
+diff -up /dev/null dhcp-3.1.2/includes/ldap_casa.h
+--- /dev/null	2009-07-08 03:35:30.103138421 -1000
++++ dhcp-3.1.2/includes/ldap_casa.h	2009-07-08 07:49:29.000000000 -1000
 @@ -0,0 +1,83 @@
 +/* ldap_casa.h
 +   
@@ -332,9 +325,9 @@ diff -Naur dhcp-3.1.2.orig/includes/ldap_casa.h dhcp-3.1.2/includes/ldap_casa.h
 +#endif /* __LDAP_CASA_H__ */
 +#endif /* LDAP_CASA_AUTH */
 +
-diff -Naur dhcp-3.1.2.orig/includes/site.h dhcp-3.1.2/includes/site.h
---- dhcp-3.1.2.orig/includes/site.h	2009-07-07 18:51:05.482538734 +0000
-+++ dhcp-3.1.2/includes/site.h	2009-07-07 18:48:02.127864146 +0000
+diff -up dhcp-3.1.2/includes/site.h.ldap dhcp-3.1.2/includes/site.h
+--- dhcp-3.1.2/includes/site.h.ldap	2008-09-24 06:20:26.000000000 -1000
++++ dhcp-3.1.2/includes/site.h	2009-07-08 07:49:29.000000000 -1000
 @@ -194,3 +194,18 @@
     traces. */
  
@@ -354,9 +347,9 @@ diff -Naur dhcp-3.1.2.orig/includes/site.h dhcp-3.1.2/includes/site.h
 +#define _PATH_DHCLIENT_DB "/var/lib/dhclient/dhclient.leases"
 +#define _PATH_DHCPD_DB    "/var/lib/dhcpd/dhcpd.leases"
 +#define _PATH_DHCLIENT_DB "/var/lib/dhclient/dhclient.leases"
-diff -Naur dhcp-3.1.2.orig/server/Makefile.dist dhcp-3.1.2/server/Makefile.dist
---- dhcp-3.1.2.orig/server/Makefile.dist	2009-07-07 18:51:05.442615497 +0000
-+++ dhcp-3.1.2/server/Makefile.dist	2009-07-07 18:50:05.178744275 +0000
+diff -up dhcp-3.1.2/server/Makefile.dist.ldap dhcp-3.1.2/server/Makefile.dist
+--- dhcp-3.1.2/server/Makefile.dist.ldap	2006-07-25 03:26:00.000000000 -1000
++++ dhcp-3.1.2/server/Makefile.dist	2009-07-08 07:49:29.000000000 -1000
 @@ -25,14 +25,14 @@
  CATMANPAGES = dhcpd.cat8 dhcpd.conf.cat5 dhcpd.leases.cat5
  SEDMANPAGES = dhcpd.man8 dhcpd.conf.man5 dhcpd.leases.man5
@@ -375,7 +368,7 @@ diff -Naur dhcp-3.1.2.orig/server/Makefile.dist dhcp-3.1.2/server/Makefile.dist
  CFLAGS = $(DEBUG) $(PREDEFINES) $(INCLUDES) $(COPTS)
  
  all:	$(PROG) $(CATMANPAGES)
-@@ -106,6 +106,6 @@
+@@ -106,6 +106,6 @@ dhcpd.leases.man5:	dhcpd.leases.5
  		-e "s#RUNDIR#$(VARRUN)#g" < dhcpd.leases.5 >dhcpd.leases.man5
  
  dhcpd:	$(OBJS) $(COBJ) $(DHCPLIB)
@@ -383,10 +376,10 @@ diff -Naur dhcp-3.1.2.orig/server/Makefile.dist dhcp-3.1.2/server/Makefile.dist
 +	$(CC) $(LFLAGS) -o dhcpd $(OBJS) $(DHCPLIB) $(LIBS) $(LDAPLIB) $(SSLLIB)
  
  # Dependencies (semi-automatically-generated)
-diff -Naur dhcp-3.1.2.orig/server/class.c dhcp-3.1.2/server/class.c
---- dhcp-3.1.2.orig/server/class.c	2009-07-07 18:51:05.470965512 +0000
-+++ dhcp-3.1.2/server/class.c	2009-07-07 18:48:02.002860549 +0000
-@@ -90,6 +90,7 @@
+diff -up dhcp-3.1.2/server/class.c.ldap dhcp-3.1.2/server/class.c
+--- dhcp-3.1.2/server/class.c.ldap	2006-06-01 10:23:17.000000000 -1000
++++ dhcp-3.1.2/server/class.c	2009-07-08 07:49:29.000000000 -1000
+@@ -90,6 +90,7 @@ int check_collection (packet, lease, col
  	int matched = 0;
  	int status;
  	int ignorep;
@@ -394,7 +387,7 @@ diff -Naur dhcp-3.1.2.orig/server/class.c dhcp-3.1.2/server/class.c
  
  	for (class = collection -> classes; class; class = class -> nic) {
  #if defined (DEBUG_CLASS_MATCHING)
-@@ -135,9 +136,15 @@
+@@ -135,9 +136,15 @@ int check_collection (packet, lease, col
  				   class -> submatch, MDL));
  			if (status && data.len) {
  				nc = (struct class *)0;
@@ -413,10 +406,10 @@ diff -Naur dhcp-3.1.2.orig/server/class.c dhcp-3.1.2/server/class.c
  #if defined (DEBUG_CLASS_MATCHING)
  					log_info ("matches subclass %s.",
  					      print_hex_1 (data.len,
-diff -Naur dhcp-3.1.2.orig/server/confpars.c dhcp-3.1.2/server/confpars.c
---- dhcp-3.1.2.orig/server/confpars.c	2009-07-07 18:51:05.470965512 +0000
-+++ dhcp-3.1.2/server/confpars.c	2009-07-07 18:48:01.982027676 +0000
-@@ -63,7 +63,17 @@
+diff -up dhcp-3.1.2/server/confpars.c.ldap dhcp-3.1.2/server/confpars.c
+--- dhcp-3.1.2/server/confpars.c.ldap	2008-01-22 09:02:51.000000000 -1000
++++ dhcp-3.1.2/server/confpars.c	2009-07-08 07:49:29.000000000 -1000
+@@ -63,7 +63,17 @@ void parse_trace_setup ()
  
  isc_result_t readconf ()
  {
@@ -435,10 +428,10 @@ diff -Naur dhcp-3.1.2.orig/server/confpars.c dhcp-3.1.2/server/confpars.c
  }
  
  isc_result_t read_conf_file (const char *filename, struct group *group,
-diff -Naur dhcp-3.1.2.orig/server/dhcpd.c dhcp-3.1.2/server/dhcpd.c
---- dhcp-3.1.2.orig/server/dhcpd.c	2009-07-07 18:51:05.447243612 +0000
-+++ dhcp-3.1.2/server/dhcpd.c	2009-07-07 18:48:01.929363189 +0000
-@@ -439,6 +439,14 @@
+diff -up dhcp-3.1.2/server/dhcpd.c.ldap dhcp-3.1.2/server/dhcpd.c
+--- dhcp-3.1.2/server/dhcpd.c.ldap	2008-03-18 08:30:20.000000000 -1000
++++ dhcp-3.1.2/server/dhcpd.c	2009-07-08 07:49:29.000000000 -1000
+@@ -439,6 +439,14 @@ int main (argc, argv, envp)
  	/* Add the ddns update style enumeration prior to parsing. */
  	add_enumeration (&ddns_styles);
  	add_enumeration (&syslog_enum);
@@ -453,9 +446,9 @@ diff -Naur dhcp-3.1.2.orig/server/dhcpd.c dhcp-3.1.2/server/dhcpd.c
  
  	if (!group_allocate (&root_group, MDL))
  		log_fatal ("Can't allocate root group!");
-diff -Naur dhcp-3.1.2.orig/server/ldap.c dhcp-3.1.2/server/ldap.c
---- dhcp-3.1.2.orig/server/ldap.c	1970-01-01 00:00:00.000000000 +0000
-+++ dhcp-3.1.2/server/ldap.c	2009-07-07 18:48:01.943252912 +0000
+diff -up /dev/null dhcp-3.1.2/server/ldap.c
+--- /dev/null	2009-07-08 03:35:30.103138421 -1000
++++ dhcp-3.1.2/server/ldap.c	2009-07-08 07:49:29.000000000 -1000
 @@ -0,0 +1,2003 @@
 +/* ldap.c
 +
@@ -2460,9 +2453,9 @@ diff -Naur dhcp-3.1.2.orig/server/ldap.c dhcp-3.1.2/server/ldap.c
 +}
 +
 +#endif
-diff -Naur dhcp-3.1.2.orig/server/ldap_casa.c dhcp-3.1.2/server/ldap_casa.c
---- dhcp-3.1.2.orig/server/ldap_casa.c	1970-01-01 00:00:00.000000000 +0000
-+++ dhcp-3.1.2/server/ldap_casa.c	2009-07-07 18:48:01.861655127 +0000
+diff -up /dev/null dhcp-3.1.2/server/ldap_casa.c
+--- /dev/null	2009-07-08 03:35:30.103138421 -1000
++++ dhcp-3.1.2/server/ldap_casa.c	2009-07-08 07:49:29.000000000 -1000
 @@ -0,0 +1,138 @@
 +/* ldap_casa.c
 +   
@@ -2602,10 +2595,10 @@ diff -Naur dhcp-3.1.2.orig/server/ldap_casa.c dhcp-3.1.2/server/ldap_casa.c
 +
 +#endif /* LDAP_CASA_AUTH */
 +
-diff -Naur dhcp-3.1.2.orig/server/mdb.c dhcp-3.1.2/server/mdb.c
---- dhcp-3.1.2.orig/server/mdb.c	2009-07-07 18:51:05.437983960 +0000
-+++ dhcp-3.1.2/server/mdb.c	2009-07-07 18:48:01.861655127 +0000
-@@ -454,6 +454,12 @@
+diff -up dhcp-3.1.2/server/mdb.c.ldap dhcp-3.1.2/server/mdb.c
+--- dhcp-3.1.2/server/mdb.c.ldap	2008-01-22 09:02:51.000000000 -1000
++++ dhcp-3.1.2/server/mdb.c	2009-07-08 07:49:29.000000000 -1000
+@@ -454,6 +454,12 @@ int find_hosts_by_haddr (struct host_dec
  {
  	struct host_decl *foo;
  	struct hardware h;
@@ -2618,10 +2611,10 @@ diff -Naur dhcp-3.1.2.orig/server/mdb.c dhcp-3.1.2/server/mdb.c
  
  	h.hlen = hlen + 1;
  	h.hbuf [0] = htype;
-diff -Naur dhcp-3.1.2.orig/server/stables.c dhcp-3.1.2/server/stables.c
---- dhcp-3.1.2.orig/server/stables.c	2009-07-07 18:51:05.473280548 +0000
-+++ dhcp-3.1.2/server/stables.c	2009-07-07 18:48:02.009806144 +0000
-@@ -238,9 +238,107 @@
+diff -up dhcp-3.1.2/server/stables.c.ldap dhcp-3.1.2/server/stables.c
+--- dhcp-3.1.2/server/stables.c.ldap	2008-01-22 09:02:51.000000000 -1000
++++ dhcp-3.1.2/server/stables.c	2009-07-08 07:49:29.000000000 -1000
+@@ -238,9 +238,107 @@ static struct option server_options[] = 
  	{ "adaptive-lease-time-threshold", "B",	&server_universe,  50, 1 },
  	{ "do-reverse-updates", "f",		&server_universe,  51, 1 },
  	{ "fqdn-reply", "f",			&server_universe,  52, 1 },
