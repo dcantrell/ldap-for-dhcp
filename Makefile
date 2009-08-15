@@ -1,6 +1,6 @@
 PKG   = ldap-for-dhcp
 VER   = 4.1.0
-REL   = 4
+REL   = 5
 
 URL   = ftp://ftp.isc.org/isc/dhcp/dhcp-4.1.0p1.tar.gz
 SHA1  = 71cd106f518283f6af55d3a6006b7e8f34ffe0e0
