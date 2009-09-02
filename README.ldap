@@ -183,7 +183,7 @@ objectClass: dhcpHost
 cn: brianlaptop
 dhcpHWAddress: ethernet 00:00:00:00:00:00
 
-You can use the command slapadd to load all of these entries into your LDAP
+You can use the command ldapadd to load all of these entries into your LDAP
 server. After you load this, you should be able to start up DHCP. If you run
 into problems reading the configuration, try running dhcpd with the -d flag.
 If you still have problems, edit the site.conf file in the DHCP source and
