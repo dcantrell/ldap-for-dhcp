@@ -1,9 +1,9 @@
 PKG   = ldap-for-dhcp
-VER   = 4.1.0
-REL   = 5
+VER   = 4.1.1
+REL   = 1
 
-URL   = ftp://ftp.isc.org/isc/dhcp/dhcp-4.1.0p1.tar.gz
-SHA1  = 71cd106f518283f6af55d3a6006b7e8f34ffe0e0
+URL   = ftp://ftp.isc.org/isc/dhcp/dhcp-4.1.1.tar.gz
+SHA1  = b23a28d481a84248f8170b4c6c1166a86c04b2a6
 
 FILES = LICENSE.ldap dhcp-$(VER)-ldap.patch dhcpd-conf-to-ldap \
         README.ldap dhcp.schema draft-ietf-dhc-ldap-schema-01.txt
