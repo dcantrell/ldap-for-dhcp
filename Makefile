@@ -12,12 +12,14 @@ CWD     = $(shell pwd)
 ARCHIVE = $(shell basename $(URL))
 SUBDIR  = $(shell basename $(ARCHIVE) .tar.gz)
 WGET    = wget -t 5 --progress=bar
+SHA1SUM = sha1sum
 
 all: $(FILES)
 	-rm -rf $(PKG)-$(VER)-$(REL)
 	mkdir -p $(PKG)-$(VER)-$(REL)
 	cp -p $(FILES) $(PKG)-$(VER)-$(REL)
 	tar -cvf - $(PKG)-$(VER)-$(REL) | gzip -9c > $(PKG)-$(VER)-$(REL).tar.gz
+	sha1sum $(PKG)-$(VER)-$(REL).tar.gz > $(PKG)-$(VER)-$(REL).tar.gz.SHA1SUM
 
 fetch:
 	@if [ -f $(ARCHIVE) ]; then \
@@ -61,6 +63,7 @@ release: tag
 	@echo
 
 clean:
+	-rm -rf $(PKG)-$(VER)-$(REL).tar.gz.SHA1SUM
 	-rm -rf $(PKG)-$(VER)-$(REL).tar.gz
 	-rm -rf $(PKG)-$(VER)-$(REL)
 	-rm -rf $(ARCHIVE) $(SUBDIR)
