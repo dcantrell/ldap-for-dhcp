@@ -1,6 +1,6 @@
 diff -up dhcp-4.1.1/common/conflex.c.ldap dhcp-4.1.1/common/conflex.c
---- dhcp-4.1.1/common/conflex.c.ldap	2009-07-23 09:02:09.000000000 -1000
-+++ dhcp-4.1.1/common/conflex.c	2010-02-16 07:14:11.000000000 -1000
+--- dhcp-4.1.1/common/conflex.c.ldap	2009-07-23 21:02:09.000000000 +0200
++++ dhcp-4.1.1/common/conflex.c	2010-05-27 16:04:27.000000000 +0200
 @@ -43,6 +43,7 @@ static enum dhcp_token read_string PROTO
  static enum dhcp_token read_number PROTO ((int, struct parse *));
  static enum dhcp_token read_num_or_name PROTO ((int, struct parse *));
@@ -37,7 +37,16 @@ diff -up dhcp-4.1.1/common/conflex.c.ldap dhcp-4.1.1/common/conflex.c
  		c = cfile->inbuf [cfile->bufix];
  		cfile->bufix++;
  	}
-@@ -1466,3 +1475,25 @@ intern(char *atom, enum dhcp_token dfv) 
+@@ -465,6 +474,8 @@ read_whitespace(int c, struct parse *cfi
+ 	do {
+ 		cfile->tokbuf[ofs++] = c;
+ 		c = get_char(cfile);
++ 		if (c == EOF)
++ 		  return END_OF_FILE;
+ 	} while (!((c == '\n') && cfile->eol_token) && 
+ 		 isascii(c) && isspace(c));
+ 
+@@ -1466,3 +1477,25 @@ intern(char *atom, enum dhcp_token dfv) 
  	}
  	return dfv;
  }
@@ -64,8 +73,8 @@ diff -up dhcp-4.1.1/common/conflex.c.ldap dhcp-4.1.1/common/conflex.c
 +	return c;
 +}
 diff -up dhcp-4.1.1/common/print.c.ldap dhcp-4.1.1/common/print.c
---- dhcp-4.1.1/common/print.c.ldap	2009-07-23 09:02:09.000000000 -1000
-+++ dhcp-4.1.1/common/print.c	2010-02-16 07:14:11.000000000 -1000
+--- dhcp-4.1.1/common/print.c.ldap	2009-07-23 21:02:09.000000000 +0200
++++ dhcp-4.1.1/common/print.c	2010-05-27 15:55:23.000000000 +0200
 @@ -163,9 +163,9 @@ char *print_base64 (const unsigned char 
  }
  
@@ -80,8 +89,8 @@ diff -up dhcp-4.1.1/common/print.c.ldap dhcp-4.1.1/common/print.c
  	static char habuf [49];
  	char *s;
 diff -up dhcp-4.1.1/configure.ac.ldap dhcp-4.1.1/configure.ac
---- dhcp-4.1.1/configure.ac.ldap	2010-01-07 11:42:14.000000000 -1000
-+++ dhcp-4.1.1/configure.ac	2010-02-16 07:15:36.000000000 -1000
+--- dhcp-4.1.1/configure.ac.ldap	2010-01-07 22:42:14.000000000 +0100
++++ dhcp-4.1.1/configure.ac	2010-05-27 15:55:23.000000000 +0200
 @@ -483,6 +483,53 @@ AC_CHECK_MEMBER(struct msghdr.msg_contro
  #include <sys/socket.h>
  	])
@@ -137,8 +146,8 @@ diff -up dhcp-4.1.1/configure.ac.ldap dhcp-4.1.1/configure.ac
  # AC_TRY_COMPILE & etc).
  CFLAGS="$CFLAGS $STD_CWARNINGS"
 diff -up dhcp-4.1.1/dst/Makefile.am.ldap dhcp-4.1.1/dst/Makefile.am
---- dhcp-4.1.1/dst/Makefile.am.ldap	2007-05-29 06:32:10.000000000 -1000
-+++ dhcp-4.1.1/dst/Makefile.am	2010-02-16 07:14:11.000000000 -1000
+--- dhcp-4.1.1/dst/Makefile.am.ldap	2007-05-29 18:32:10.000000000 +0200
++++ dhcp-4.1.1/dst/Makefile.am	2010-05-27 15:55:23.000000000 +0200
 @@ -2,7 +2,11 @@ AM_CPPFLAGS = -DMINIRES_LIB -DHMAC_MD5
  
  lib_LIBRARIES = libdst.a
@@ -153,8 +162,8 @@ diff -up dhcp-4.1.1/dst/Makefile.am.ldap dhcp-4.1.1/dst/Makefile.am
 +
  EXTRA_DIST = dst_internal.h md5.h md5_locl.h
 diff -up dhcp-4.1.1/includes/dhcpd.h.ldap dhcp-4.1.1/includes/dhcpd.h
---- dhcp-4.1.1/includes/dhcpd.h.ldap	2009-07-23 09:02:09.000000000 -1000
-+++ dhcp-4.1.1/includes/dhcpd.h	2010-02-16 07:14:11.000000000 -1000
+--- dhcp-4.1.1/includes/dhcpd.h.ldap	2009-07-23 21:02:09.000000000 +0200
++++ dhcp-4.1.1/includes/dhcpd.h	2010-05-27 16:17:41.000000000 +0200
 @@ -103,6 +103,11 @@ typedef time_t TIME;
  #include <isc-dhcp/result.h>
  #include <omapip/omapip_p.h>
@@ -248,7 +257,7 @@ diff -up dhcp-4.1.1/includes/dhcpd.h.ldap dhcp-4.1.1/includes/dhcpd.h
  void print_lease PROTO ((struct lease *));
  void dump_raw PROTO ((const unsigned char *, unsigned));
  void dump_packet_option (struct option_cache *, struct packet *,
-@@ -3234,6 +3290,20 @@ OMAPI_OBJECT_ALLOC_DECL (dhcp_failover_l
+@@ -3234,6 +3290,22 @@ OMAPI_OBJECT_ALLOC_DECL (dhcp_failover_l
  
  const char *binding_state_print (enum failover_state);
  
@@ -262,16 +271,18 @@ diff -up dhcp-4.1.1/includes/dhcpd.h.ldap dhcp-4.1.1/includes/dhcpd.h
 +#endif
 +isc_result_t ldap_read_config (void);
 +int find_haddr_in_ldap (struct host_decl **, int, unsigned,
-+                        const unsigned char *, const char *, int);
++			const unsigned char *, const char *, int);
 +int find_subclass_in_ldap (struct class *, struct class **,
-+                           struct data_string *);
++			   struct data_string *);
++int find_client_in_ldap (struct host_decl **, struct packet*,
++			 struct option_state *, const char *, int);
 +#endif
  
  /* mdb6.c */
  HASH_FUNCTIONS_DECL(ia, unsigned char *, struct ia_xx, ia_hash_t);
 diff -up dhcp-4.1.1/includes/ldap_casa.h.ldap dhcp-4.1.1/includes/ldap_casa.h
---- dhcp-4.1.1/includes/ldap_casa.h.ldap	2010-02-16 07:14:11.000000000 -1000
-+++ dhcp-4.1.1/includes/ldap_casa.h	2010-02-16 07:14:11.000000000 -1000
+--- dhcp-4.1.1/includes/ldap_casa.h.ldap	2010-05-27 16:09:08.000000000 +0200
++++ dhcp-4.1.1/includes/ldap_casa.h	2010-05-27 15:55:23.000000000 +0200
 @@ -0,0 +1,83 @@
 +/* ldap_casa.h
 +   
@@ -357,8 +368,8 @@ diff -up dhcp-4.1.1/includes/ldap_casa.h.ldap dhcp-4.1.1/includes/ldap_casa.h
 +#endif /* LDAP_CASA_AUTH */
 +
 diff -up dhcp-4.1.1/server/Makefile.am.ldap dhcp-4.1.1/server/Makefile.am
---- dhcp-4.1.1/server/Makefile.am.ldap	2007-05-29 06:32:11.000000000 -1000
-+++ dhcp-4.1.1/server/Makefile.am	2010-02-16 07:14:11.000000000 -1000
+--- dhcp-4.1.1/server/Makefile.am.ldap	2007-05-29 18:32:11.000000000 +0200
++++ dhcp-4.1.1/server/Makefile.am	2010-05-27 15:55:23.000000000 +0200
 @@ -4,12 +4,11 @@ dist_sysconf_DATA = dhcpd.conf
  sbin_PROGRAMS = dhcpd
  dhcpd_SOURCES = dhcpd.c dhcp.c bootp.c confpars.c db.c class.c failover.c \
@@ -377,8 +388,8 @@ diff -up dhcp-4.1.1/server/Makefile.am.ldap dhcp-4.1.1/server/Makefile.am
  man_MANS = dhcpd.8 dhcpd.conf.5 dhcpd.leases.5
  EXTRA_DIST = $(man_MANS)
 diff -up dhcp-4.1.1/server/class.c.ldap dhcp-4.1.1/server/class.c
---- dhcp-4.1.1/server/class.c.ldap	2009-07-24 12:04:52.000000000 -1000
-+++ dhcp-4.1.1/server/class.c	2010-02-16 07:14:11.000000000 -1000
+--- dhcp-4.1.1/server/class.c.ldap	2009-07-25 00:04:52.000000000 +0200
++++ dhcp-4.1.1/server/class.c	2010-05-27 15:55:23.000000000 +0200
 @@ -84,6 +84,7 @@ int check_collection (packet, lease, col
  	int matched = 0;
  	int status;
@@ -407,8 +418,8 @@ diff -up dhcp-4.1.1/server/class.c.ldap dhcp-4.1.1/server/class.c
  					log_info ("matches subclass %s.",
  					      print_hex_1 (data.len,
 diff -up dhcp-4.1.1/server/confpars.c.ldap dhcp-4.1.1/server/confpars.c
---- dhcp-4.1.1/server/confpars.c.ldap	2009-07-23 09:02:10.000000000 -1000
-+++ dhcp-4.1.1/server/confpars.c	2010-02-16 07:14:11.000000000 -1000
+--- dhcp-4.1.1/server/confpars.c.ldap	2009-07-23 21:02:10.000000000 +0200
++++ dhcp-4.1.1/server/confpars.c	2010-05-27 15:55:23.000000000 +0200
 @@ -61,7 +61,17 @@ void parse_trace_setup ()
  
  isc_result_t readconf ()
@@ -429,8 +440,8 @@ diff -up dhcp-4.1.1/server/confpars.c.ldap dhcp-4.1.1/server/confpars.c
  
  isc_result_t read_conf_file (const char *filename, struct group *group,
 diff -up dhcp-4.1.1/server/dhcpd.c.ldap dhcp-4.1.1/server/dhcpd.c
---- dhcp-4.1.1/server/dhcpd.c.ldap	2010-01-07 11:46:50.000000000 -1000
-+++ dhcp-4.1.1/server/dhcpd.c	2010-02-16 07:14:11.000000000 -1000
+--- dhcp-4.1.1/server/dhcpd.c.ldap	2010-01-07 22:46:50.000000000 +0100
++++ dhcp-4.1.1/server/dhcpd.c	2010-05-27 15:55:23.000000000 +0200
 @@ -591,6 +591,14 @@ main(int argc, char **argv) {
  	/* Add the ddns update style enumeration prior to parsing. */
  	add_enumeration (&ddns_styles);
@@ -447,9 +458,9 @@ diff -up dhcp-4.1.1/server/dhcpd.c.ldap dhcp-4.1.1/server/dhcpd.c
  	if (!group_allocate (&root_group, MDL))
  		log_fatal ("Can't allocate root group!");
 diff -up dhcp-4.1.1/server/ldap.c.ldap dhcp-4.1.1/server/ldap.c
---- dhcp-4.1.1/server/ldap.c.ldap	2010-02-16 07:14:11.000000000 -1000
-+++ dhcp-4.1.1/server/ldap.c	2010-02-16 07:14:11.000000000 -1000
-@@ -0,0 +1,2004 @@
+--- dhcp-4.1.1/server/ldap.c.ldap	2010-05-27 16:12:27.000000000 +0200
++++ dhcp-4.1.1/server/ldap.c	2010-05-27 16:30:26.000000000 +0200
+@@ -0,0 +1,2247 @@
 +/* ldap.c
 +
 +   Routines for reading the configuration from LDAP */
@@ -722,6 +733,55 @@ diff -up dhcp-4.1.1/server/ldap.c.ldap dhcp-4.1.1/server/ldap.c
 +          x_strncat (cfile->inbuf, tempbv[i]->bv_val, LDAP_BUFFER_SIZE);
 +          x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
 +        }
++      ldap_value_free_len (tempbv);
++    }
++
++  item->close_brace = 1;
++}
++
++
++static void
++ldap_parse_subnet6 (struct ldap_config_stack *item, struct parse *cfile)
++{
++  struct berval **tempbv;
++  int i;
++
++  if ((tempbv = ldap_get_values_len (ld, item->ldent, "cn")) == NULL ||
++      tempbv[0] == NULL)
++    {
++      if (tempbv != NULL)
++        ldap_value_free_len (tempbv);
++
++      return;
++    }
++
++  x_strncat (cfile->inbuf, "subnet6 ", LDAP_BUFFER_SIZE);
++  x_strncat (cfile->inbuf, tempbv[0]->bv_val, LDAP_BUFFER_SIZE);
++
++  x_strncat (cfile->inbuf, " {\n", LDAP_BUFFER_SIZE);
++
++  ldap_value_free_len (tempbv);
++
++  if ((tempbv = ldap_get_values_len (ld, item->ldent, "dhcpRange")) != NULL)
++    {
++      for (i=0; tempbv[i] != NULL; i++)
++        {
++          x_strncat (cfile->inbuf, "range6", LDAP_BUFFER_SIZE);
++          x_strncat (cfile->inbuf, " ", LDAP_BUFFER_SIZE);
++          x_strncat (cfile->inbuf, tempbv[i]->bv_val, LDAP_BUFFER_SIZE);
++          x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++        }
++      ldap_value_free_len (tempbv);
++    }
++
++  if ((tempbv = ldap_get_values_len (ld, item->ldent, "dhcpPermitList")) != NULL)
++    {
++      for (i=0; tempbv[i] != NULL; i++)
++        {
++          x_strncat (cfile->inbuf, tempbv[i]->bv_val, LDAP_BUFFER_SIZE);
++          x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++        }
++      ldap_value_free_len (tempbv);
 +    }
 +
 +  item->close_brace = 1;
@@ -739,6 +799,40 @@ diff -up dhcp-4.1.1/server/ldap.c.ldap dhcp-4.1.1/server/ldap.c
 +  if ((tempbv = ldap_get_values_len (ld, item->ldent, "dhcpRange")) != NULL)
 +    {
 +      x_strncat (cfile->inbuf, "range", LDAP_BUFFER_SIZE);
++      for (i=0; tempbv[i] != NULL; i++)
++        {
++          x_strncat (cfile->inbuf, " ", LDAP_BUFFER_SIZE);
++          x_strncat (cfile->inbuf, tempbv[i]->bv_val, LDAP_BUFFER_SIZE);
++        }
++      x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++      ldap_value_free_len (tempbv);
++    }
++
++  if ((tempbv = ldap_get_values_len (ld, item->ldent, "dhcpPermitList")) != NULL)
++    {
++      for (i=0; tempbv[i] != NULL; i++)
++        {
++          x_strncat (cfile->inbuf, tempbv[i]->bv_val, LDAP_BUFFER_SIZE);
++          x_strncat (cfile->inbuf, ";\n", LDAP_BUFFER_SIZE);
++        }
++      ldap_value_free_len (tempbv);
++    }
++
++  item->close_brace = 1;
++}
++
++
++static void
++ldap_parse_pool6 (struct ldap_config_stack *item, struct parse *cfile)
++{
++  struct berval **tempbv;
++  int i;
++
++  x_strncat (cfile->inbuf, "pool {\n", LDAP_BUFFER_SIZE);
++
++  if ((tempbv = ldap_get_values_len (ld, item->ldent, "dhcpRange")) != NULL)
++    {
++      x_strncat (cfile->inbuf, "range6", LDAP_BUFFER_SIZE);
 +      for (i=0; tempbv[i] != NULL; i++)
 +        {
 +          x_strncat (cfile->inbuf, " ", LDAP_BUFFER_SIZE);
@@ -1608,8 +1702,12 @@ diff -up dhcp-4.1.1/server/ldap.c.ldap dhcp-4.1.1/server/ldap.c
 +        ldap_parse_class (entry, cfile);
 +      else if (strcasecmp (objectClass[i]->bv_val, "dhcpSubnet") == 0)
 +        ldap_parse_subnet (entry, cfile);
++      else if (strcasecmp (objectClass[i]->bv_val, "dhcpSubnet6") == 0)
++        ldap_parse_subnet6 (entry, cfile);
 +      else if (strcasecmp (objectClass[i]->bv_val, "dhcpPool") == 0)
 +        ldap_parse_pool (entry, cfile);
++      else if (strcasecmp (objectClass[i]->bv_val, "dhcpPool6") == 0)
++        ldap_parse_pool6 (entry, cfile);
 +      else if (strcasecmp (objectClass[i]->bv_val, "dhcpGroup") == 0)
 +        ldap_parse_group (entry, cfile);
 +      else if (strcasecmp (objectClass[i]->bv_val, "dhcpTSigKey") == 0)
@@ -2453,10 +2551,166 @@ diff -up dhcp-4.1.1/server/ldap.c.ldap dhcp-4.1.1/server/ldap.c
 +  return (0);
 +}
 +
++
++int
++find_client_in_ldap (struct host_decl **hp, struct packet *packet,
++		     struct option_state *state, const char *file, int line)
++{
++  LDAPMessage * res, * ent;
++  ldap_dn_node *curr;
++  struct host_decl * host;
++  isc_result_t status;
++  struct data_string client_id;
++  char buf[1024], buf1[1024];
++  int ret;
++
++  if (ldap_method == LDAP_METHOD_STATIC)
++    return (0);
++
++  if (ld == NULL)
++    ldap_start ();
++  if (ld == NULL)
++    return (0);
++
++  memset(&client_id, 0, sizeof(client_id));
++  if (get_client_id(packet, &client_id) != ISC_R_SUCCESS)
++    return (0);
++  snprintf(buf, sizeof(buf),
++           "(&(objectClass=dhcpHost)(dhcpClientId=%s))", print_hw_addr(0, client_id.len,
++                                                                       client_id.data));
++
++  /* log_info ("Searching LDAP for %s (%s)", buf, packet->interface->shared_network->name); */
++
++  res = ent = NULL;
++  for (curr = ldap_service_dn_head;
++       curr != NULL && *curr->dn != '\0';
++       curr = curr->next)
++    {
++      snprintf(buf1, sizeof(buf1), "cn=%s,%s", packet->interface->shared_network->name, curr->dn);
++#if defined (DEBUG_LDAP)
++      log_info ("Searching for %s in LDAP tree %s", buf, buf1);
++#endif
++      ret = ldap_search_ext_s (ld, buf1, LDAP_SCOPE_SUBTREE, buf, NULL, 0,
++                               NULL, NULL, NULL, 0, &res);
++
++      if(ret == LDAP_SERVER_DOWN)
++        {
++          log_info ("LDAP server was down, trying to reconnect...");
++
++          ldap_stop();
++          ldap_start();
++
++          if(ld == NULL)
++            {
++              log_info ("LDAP reconnect failed - try again later...");
++              return (0);
++            }
++
++          ret = ldap_search_ext_s (ld, buf1, LDAP_SCOPE_SUBTREE, buf,
++                                   NULL, 0, NULL, NULL, NULL, 0, &res);
++        }
++
++      if (ret == LDAP_SUCCESS)
++        {
++          if( (ent = ldap_first_entry (ld, res)) != NULL)
++            {
++              log_info ("found entry in search %s", buf1);
++              break; /* search OK and have entry */
++            }
++
++#if defined (DEBUG_LDAP)
++          log_info ("No subclass entry for %s in LDAP tree %s",
++                    buf, curr->dn);
++#endif
++          if(res)
++            {
++              ldap_msgfree (res);
++              res = NULL;
++            }
++        }
++      else
++        {
++          if(res)
++            {
++              ldap_msgfree (res);
++              res = NULL;
++            }
++
++          if (ret != LDAP_NO_SUCH_OBJECT && ret != LDAP_SUCCESS)
++            {
++              log_error ("Cannot search for %s in LDAP tree %s: %s", buf, 
++                         curr->dn, ldap_err2string (ret));
++              ldap_stop();
++              return (0);
++            }
++          else
++            {
++              log_info ("did not find: %s", buf);
++            }
++        }
++    }
++
++  if (res && ent)
++    {
++#if defined (DEBUG_LDAP)
++      log_info ("ldap_get_dn", curr->dn);
++      char *dn = ldap_get_dn (ld, ent);
++      if (dn != NULL)
++        {
++          log_info ("Found subclass LDAP entry %s", dn);
++          ldap_memfree(dn);
++        } else {
++          log_info ("DN is null %s", dn);
++        }
++#endif
++
++      host = (struct host_decl *)0;
++      status = host_allocate (&host, MDL);
++      if (status != ISC_R_SUCCESS)
++        {
++          log_fatal ("can't allocate host decl struct: %s", 
++                     isc_result_totext (status)); 
++          ldap_msgfree (res);
++          return (0);
++        }
++
++      host->name = ldap_get_host_name (ent);
++      if (host->name == NULL)
++        {
++          host_dereference (&host, MDL);
++          ldap_msgfree (res);
++          return (0);
++        }
++      /* log_info ("Host name %s", host->name); */
++
++      if (!clone_group (&host->group, root_group, MDL))
++        {
++          log_fatal ("can't clone group for host %s", host->name);
++          host_dereference (&host, MDL);
++          ldap_msgfree (res);
++          return (0);
++        }
++
++      ldap_parse_options (ent, host->group, HOST_DECL, host, NULL);
++
++      *hp = host;
++      ldap_msgfree (res);
++      return (1);
++    }
++    else
++    {
++       log_info ("did not find clientid: %s", buf);
++    }
++
++  if(res) ldap_msgfree (res);
++  return (0);
++
++}
++
 +#endif
 diff -up dhcp-4.1.1/server/ldap_casa.c.ldap dhcp-4.1.1/server/ldap_casa.c
---- dhcp-4.1.1/server/ldap_casa.c.ldap	2010-02-16 07:14:11.000000000 -1000
-+++ dhcp-4.1.1/server/ldap_casa.c	2010-02-16 07:14:11.000000000 -1000
+--- dhcp-4.1.1/server/ldap_casa.c.ldap	2010-05-27 16:12:37.000000000 +0200
++++ dhcp-4.1.1/server/ldap_casa.c	2010-05-27 15:55:23.000000000 +0200
 @@ -0,0 +1,138 @@
 +/* ldap_casa.c
 +   
@@ -2597,8 +2851,8 @@ diff -up dhcp-4.1.1/server/ldap_casa.c.ldap dhcp-4.1.1/server/ldap_casa.c
 +#endif /* LDAP_CASA_AUTH */
 +
 diff -up dhcp-4.1.1/server/mdb.c.ldap dhcp-4.1.1/server/mdb.c
---- dhcp-4.1.1/server/mdb.c.ldap	2009-07-23 09:02:10.000000000 -1000
-+++ dhcp-4.1.1/server/mdb.c	2010-02-16 07:14:11.000000000 -1000
+--- dhcp-4.1.1/server/mdb.c.ldap	2009-07-23 21:02:10.000000000 +0200
++++ dhcp-4.1.1/server/mdb.c	2010-05-27 16:15:41.000000000 +0200
 @@ -600,6 +600,12 @@ int find_hosts_by_haddr (struct host_dec
  			 const char *file, int line)
  {
@@ -2612,9 +2866,21 @@ diff -up dhcp-4.1.1/server/mdb.c.ldap dhcp-4.1.1/server/mdb.c
  
  	h.hlen = hlen + 1;
  	h.hbuf [0] = htype;
+@@ -626,6 +632,11 @@ find_hosts_by_option(struct host_decl **
+ 	struct data_string data;
+ 	int found;
+ 	
++#if defined(LDAP_CONFIGURATION)
++	if ((found = find_client_in_ldap (hp, packet, opt_state, file, line)))
++		return found;
++#endif
++
+ 	for (p = host_id_info; p != NULL; p = p->next) {
+ 		oc = lookup_option(p->option->universe, 
+ 				   opt_state, p->option->code);
 diff -up dhcp-4.1.1/server/stables.c.ldap dhcp-4.1.1/server/stables.c
---- dhcp-4.1.1/server/stables.c.ldap	2009-07-24 12:04:53.000000000 -1000
-+++ dhcp-4.1.1/server/stables.c	2010-02-16 07:14:11.000000000 -1000
+--- dhcp-4.1.1/server/stables.c.ldap	2009-07-25 00:04:53.000000000 +0200
++++ dhcp-4.1.1/server/stables.c	2010-05-27 15:55:23.000000000 +0200
 @@ -244,9 +244,107 @@ static struct option server_options[] = 
  	{ "delayed-ack", "S",			&server_universe,  58, 1 },
  	{ "max-ack-delay", "L",			&server_universe,  59, 1 },
