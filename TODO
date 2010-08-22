@@ -1,3 +1,4 @@
-- Make the patch available for dhcp-3.1.2
-- Make the patch available for dhcp-4.0.1
+- Handle bugs, see:
+      http://github.com/dcantrell/ldap-for-dhcp/issues
+
 - Rewrite dhcpd-conf-to-ldap in Python (I can't maintain Perl)
