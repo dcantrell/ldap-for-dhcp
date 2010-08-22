@@ -1,0 +1,21 @@
+ISC has merged in LDAP support as of dhcp-4.2.0.  From the RELNOTES
+file:
+
+- "The LDAP Patch" that has been circulating for some time, written by
+  Brian Masney and S.Kalyanasundraram and maintained for application to
+  the DHCP-4 sources by David Cantrell has been included.  Please be
+  advised that these sources were contributed, and do not yet meet the
+  high standards we place on production sources we include by default.
+  As a result, the LDAP features are only included by using a compile-time
+  option which defaults off, and if you enable it you do so under your
+  own recognizance.  We will be improving this software over time.
+  [ISC-Bugs #17741]
+
+
+
+I will keep this project alive on github.com for users wanting to use
+older releases of ISC dhcp and have LDAP support.  I cannot guarantee
+that we will do a lot of heavy work on supporting those old releases.
+
+Many thanks to everyone who has used this patch, contributed fixes, and
+urged ISC to merge it upstream!
