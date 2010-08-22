@@ -1,6 +1,6 @@
 The dhcp-%VERSION%-ldap.patch is provided under the following terms:
 
-Copyright (C) 2007, 2008, 2009  David Cantrell <dcantrell@redhat.com>
+Copyright (C) 2007-2010  David Cantrell <dcantrell@redhat.com>
 
 Permission to use, copy, modify, and distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
